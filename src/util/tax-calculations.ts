@@ -124,7 +124,7 @@ export const calculateTotalTaxWithSalt = (
 };
 
 /**
- * Calculate the effective SALT cap under the proposed legislation with phasedown
+ * Calculate the effective SALT cap under the BBB with phasedown
  * Based on bill text: 30% reduction for income over $500k threshold, minimum $10k
  */
 export const calculateProposedSaltCap = (
@@ -134,13 +134,13 @@ export const calculateProposedSaltCap = (
   const threshold = getPhasedownThreshold(filingStatus);
 
   if (!isAbovePhasedownThreshold(agi, filingStatus)) {
-    return SALT_CAP_CONSTANTS.PROPOSED_BASE_CAP; // No phasedown
+    return SALT_CAP_CONSTANTS.BBB_BASE_CAP; // No phasedown
   }
 
   // Calculate phasedown reduction
   const excess = agi - threshold;
   const reduction = excess * SALT_CAP_CONSTANTS.PHASEDOWN_RATE;
-  const effectiveCap = SALT_CAP_CONSTANTS.PROPOSED_BASE_CAP - reduction;
+  const effectiveCap = SALT_CAP_CONSTANTS.BBB_BASE_CAP - reduction;
 
   // Cannot go below current cap
   return Math.max(effectiveCap, SALT_CAP_CONSTANTS.CURRENT_CAP);
@@ -163,9 +163,9 @@ export const generateSaltComparisonData = (
     SALT_CAP_CONSTANTS.CURRENT_CAP,
   );
 
-  // Calculate the effective proposed cap with phasedown
-  const proposedCap = calculateProposedSaltCap(agi, filingStatus);
-  const proposedCapDeduction = Math.min(stateTax, proposedCap);
+  // Calculate the effective new law cap with phasedown
+  const newLawCap = calculateProposedSaltCap(agi, filingStatus);
+  const newLawCapDeduction = Math.min(stateTax, newLawCap);
 
   // Calculate total tax for each scenario
   const noCapTotal = calculateTotalTaxWithSalt(
@@ -180,20 +180,20 @@ export const generateSaltComparisonData = (
     currentCapDeduction,
     marginalTaxRate,
   );
-  const proposedCapTotal = calculateTotalTaxWithSalt(
+  const newLawCapTotal = calculateTotalTaxWithSalt(
     federalTax,
     stateTax,
-    proposedCapDeduction,
+    newLawCapDeduction,
     marginalTaxRate,
   );
 
   // Create scenario label that shows effective cap amount
-  const proposedScenarioLabel =
-    proposedCap === SALT_CAP_CONSTANTS.PROPOSED_BASE_CAP
-      ? "Proposed ($40k Cap)"
-      : proposedCap === SALT_CAP_CONSTANTS.CURRENT_CAP
-      ? "Proposed ($10k Cap - Phased Out)"
-      : `Proposed ($${Math.round(proposedCap / 1000)}k Cap)`;
+  const bbbScenarioLabel =
+    newLawCap === SALT_CAP_CONSTANTS.BBB_BASE_CAP
+      ? "BBB ($40k Cap)"
+      : newLawCap === SALT_CAP_CONSTANTS.CURRENT_CAP
+      ? "BBB ($10k Cap - Phased Out)"
+      : `BBB ($${Math.round(newLawCap / 1000)}k Cap)`;
 
   return [
     {
@@ -205,11 +205,11 @@ export const generateSaltComparisonData = (
       ),
     },
     {
-      scenario: proposedScenarioLabel,
-      totalTax: Math.round(proposedCapTotal),
-      saltDeduction: Math.round(proposedCapDeduction),
+      scenario: bbbScenarioLabel,
+      totalTax: Math.round(newLawCapTotal),
+      saltDeduction: Math.round(newLawCapDeduction),
       taxSavings: Math.round(
-        calculateSaltTaxSavings(proposedCapDeduction, marginalTaxRate),
+        calculateSaltTaxSavings(newLawCapDeduction, marginalTaxRate),
       ),
     },
     {

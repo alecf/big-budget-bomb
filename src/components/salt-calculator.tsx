@@ -1,5 +1,4 @@
 "use client";
-
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -97,15 +96,12 @@ export default function SaltCalculator() {
     (item) => item.scenario === "Current ($10k Cap)",
   );
 
-  // Find the proposed scenario for summary
-  const proposedCapData = chartData.find((item) =>
-    item.scenario.includes("Proposed"),
-  );
+  // Find the BBB scenario for summary
+  const bbbCapData = chartData.find((item) => item.scenario.includes("BBB"));
 
   // Generate summary text
   const getSummaryText = () => {
-    if (!currentCapData || !proposedCapData || !agi || !selectedState)
-      return null;
+    if (!currentCapData || !bbbCapData || !agi || !selectedState) return null;
 
     const agiNum = parseFloat(agi);
     const formattedAgi = `$${agiNum.toLocaleString()}`;
@@ -115,8 +111,8 @@ export default function SaltCalculator() {
     const hasStateIncomeTax = stateInfo?.hasStateTax ?? false;
 
     const currentTax = currentCapData.totalTax;
-    const proposedTax = proposedCapData.totalTax;
-    const difference = Math.abs(currentTax - proposedTax);
+    const bbbTax = bbbCapData.totalTax;
+    const difference = Math.abs(currentTax - bbbTax);
     const formattedDifference = `$${difference.toLocaleString()}`;
 
     if (difference === 0) {
@@ -124,18 +120,18 @@ export default function SaltCalculator() {
 
       // Explain if it's due to no state income tax
       if (!hasStateIncomeTax) {
-        summaryText = `Since ${selectedState} has no state income tax, the SALT cap changes do not impact your taxes.`;
+        summaryText = `Since ${selectedState} has no state income tax, the BBB SALT changes do not impact your taxes.`;
       } else {
-        summaryText = `With an income of ${formattedAgi}, this change in the proposed legislation does not affect you.`;
+        summaryText = `With an income of ${formattedAgi}, the BBB SALT changes do not affect you.`;
 
         // Add phaseout explanation even when there's no tax difference
         if (isAbovePhasedownThreshold(agiNum, filingStatus)) {
-          const proposedCap = calculateProposedSaltCap(agiNum, filingStatus);
+          const bbbCap = calculateProposedSaltCap(agiNum, filingStatus);
 
-          if (proposedCap <= SALT_CAP_CONSTANTS.CURRENT_CAP) {
+          if (bbbCap <= SALT_CAP_CONSTANTS.CURRENT_CAP) {
             summaryText += ` The new SALT cap is completely phased out at your income level, leaving you with the current $10k cap.`;
           } else {
-            const capAmount = `$${Math.round(proposedCap / 1000)}k`;
+            const capAmount = `$${Math.round(bbbCap / 1000)}k`;
             summaryText += ` Your effective SALT cap is ${capAmount} due to the phasedown provision for high-income earners.`;
           }
         }
@@ -144,23 +140,23 @@ export default function SaltCalculator() {
       return summaryText;
     }
 
-    const isLowerTax = proposedTax < currentTax;
+    const isLowerTax = bbbTax < currentTax;
     const direction = isLowerTax ? "lower" : "higher";
 
     let summaryText;
 
     // Add explanation based on state tax situation
     if (!hasStateIncomeTax) {
-      summaryText = `You will pay ${direction} taxes by ${formattedDifference} in the proposed legislation. Since ${selectedState} has no state income tax, this difference comes from property taxes or other deductible state and local taxes.`;
+      summaryText = `You will pay ${direction} taxes by ${formattedDifference} under the BBB. Since ${selectedState} has no state income tax, this difference comes from property taxes or other deductible state and local taxes.`;
     } else {
-      summaryText = `With an income of ${formattedAgi}, you will pay ${direction} taxes by ${formattedDifference} in the proposed legislation.`;
+      summaryText = `With an income of ${formattedAgi}, you will pay ${direction} taxes by ${formattedDifference} under the BBB.`;
 
       // Add phaseout explanation if applicable
       if (isAbovePhasedownThreshold(agiNum, filingStatus)) {
-        const proposedCap = calculateProposedSaltCap(agiNum, filingStatus);
-        const capAmount = `$${Math.round(proposedCap / 1000)}k`;
+        const bbbCap = calculateProposedSaltCap(agiNum, filingStatus);
+        const capAmount = `$${Math.round(bbbCap / 1000)}k`;
 
-        if (proposedCap <= SALT_CAP_CONSTANTS.CURRENT_CAP) {
+        if (bbbCap <= SALT_CAP_CONSTANTS.CURRENT_CAP) {
           // Cap is completely phased out to current level
           summaryText += ` The new SALT cap is completely phased out at your income level, leaving you with the current $10k cap.`;
         } else {
@@ -221,11 +217,13 @@ export default function SaltCalculator() {
   return (
     <div className="container mx-auto p-6 max-w-4xl">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">SALT Deduction Calculator</h1>
+        <h1 className="text-3xl font-bold mb-2">
+          Big Beautiful Bill: SALT Deduction Calculator
+        </h1>
         <p className="text-muted-foreground">
-          Calculate how the State and Local Tax (SALT) deduction cap affects
-          your taxes. The proposed $40k cap phases down by 30% of income over
-          $500k (minimum $10k cap).
+          Calculate how the State and Local Tax (SALT) deduction changes in the
+          BBB affect your taxes. The new $40k cap phases down by 30% of income
+          over $500k (minimum $10k cap).
         </p>
       </div>
 
@@ -441,8 +439,8 @@ export default function SaltCalculator() {
                   <span className="text-red-600">Red = costs more</span>
                 </p>
                 <p>
-                  <strong>Note:</strong> Proposed cap phases down by 30% of
-                  income over $500k (min $10k cap applies)
+                  <strong>Note:</strong> BBB cap phases down by 30% of income
+                  over $500k (min $10k cap applies)
                 </p>
               </div>
 
