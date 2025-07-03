@@ -288,15 +288,6 @@ export default function SaltCalculator() {
               <CardDescription>
                 See how different SALT cap scenarios affect your total tax
                 burden
-                <br />
-                <span className="text-xs text-muted-foreground mt-1 block">
-                  Relative amounts shown compared to current $10k cap.
-                  <span className="text-green-600">Green = savings</span>,{" "}
-                  <span className="text-red-600">Red = costs more</span>
-                  <br />
-                  <strong>Note:</strong> Proposed cap phases down by 30% of
-                  income over $500k (min $10k cap applies)
-                </span>
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -341,6 +332,18 @@ export default function SaltCalculator() {
                     <Bar dataKey="totalTax" fill="#8884d8" name="totalTax" />
                   </BarChart>
                 </ResponsiveContainer>
+              </div>
+
+              <div className="mt-4 text-xs text-muted-foreground space-y-1">
+                <p>
+                  Relative amounts shown compared to current $10k cap.{" "}
+                  <span className="text-green-600">Green = savings</span>,{" "}
+                  <span className="text-red-600">Red = costs more</span>
+                </p>
+                <p>
+                  <strong>Note:</strong> Proposed cap phases down by 30% of
+                  income over $500k (min $10k cap applies)
+                </p>
               </div>
 
               <div className="mt-6 space-y-4">
