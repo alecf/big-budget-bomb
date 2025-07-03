@@ -72,7 +72,13 @@ export default function SaltCalculator() {
     // Use actual marginal tax rate for more accurate calculations
     const marginalTaxRate = getEstimatedMarginalTaxRate(agiNum, filingStatus);
 
-    return generateSaltComparisonData(federalTax, stateTax, marginalTaxRate);
+    return generateSaltComparisonData(
+      federalTax,
+      stateTax,
+      marginalTaxRate,
+      agiNum,
+      filingStatus,
+    );
   };
 
   const chartData = getChartData();
@@ -106,13 +112,34 @@ export default function SaltCalculator() {
     );
   };
 
+  // Calculate effective tax rates
+  const calculateEffectiveTaxRate = (
+    taxAmount: string,
+    agiAmount: string,
+  ): string => {
+    const tax = parseFloat(taxAmount);
+    const agiNum = parseFloat(agiAmount);
+
+    if (!tax || !agiNum || agiNum === 0) return "0.00";
+
+    const rate = (tax / agiNum) * 100;
+    return rate.toFixed(2);
+  };
+
+  const stateEffectiveRate = calculateEffectiveTaxRate(estimatedStateTax, agi);
+  const federalEffectiveRate = calculateEffectiveTaxRate(
+    estimatedFederalTax,
+    agi,
+  );
+
   return (
     <div className="container mx-auto p-6 max-w-4xl">
       <div className="mb-8">
         <h1 className="text-3xl font-bold mb-2">SALT Deduction Calculator</h1>
         <p className="text-muted-foreground">
           Calculate how the State and Local Tax (SALT) deduction cap affects
-          your tax burden
+          your tax burden. The proposed $40k cap phases down by 30% of income
+          over $500k (minimum $10k cap).
         </p>
       </div>
 
@@ -128,20 +155,32 @@ export default function SaltCalculator() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div>
               <Label htmlFor="agi">Adjusted Gross Income (AGI)</Label>
-              <Input
-                id="agi"
-                type="number"
-                placeholder="150000"
-                value={agi}
-                onChange={(e) => setAgi(e.target.value)}
-              />
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground">
+                  $
+                </span>
+                <Input
+                  id="agi"
+                  type="number"
+                  placeholder="150,000"
+                  value={agi}
+                  className="pl-8"
+                  onChange={(e) => {
+                    setAgi(e.target.value);
+                    setShowResults(false);
+                  }}
+                />
+              </div>
             </div>
 
             <div>
               <Label htmlFor="filing-status">Filing Status</Label>
               <Select
                 value={filingStatus}
-                onValueChange={(value: FilingStatus) => setFilingStatus(value)}
+                onValueChange={(value: FilingStatus) => {
+                  setFilingStatus(value);
+                  setShowResults(false);
+                }}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select filing status" />
@@ -158,7 +197,13 @@ export default function SaltCalculator() {
 
             <div>
               <Label htmlFor="state">State</Label>
-              <Select value={selectedState} onValueChange={setSelectedState}>
+              <Select
+                value={selectedState}
+                onValueChange={(value) => {
+                  setSelectedState(value);
+                  setShowResults(false);
+                }}
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="Select your state" />
                 </SelectTrigger>
@@ -188,33 +233,51 @@ export default function SaltCalculator() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
             <Card>
               <CardHeader>
-                <CardTitle>Estimated State Tax</CardTitle>
-                <CardDescription>
-                  You can edit this value for more accuracy
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Input
-                  type="number"
-                  value={estimatedStateTax}
-                  onChange={(e) => setEstimatedStateTax(e.target.value)}
-                />
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
                 <CardTitle>Estimated Federal Tax (before deductions)</CardTitle>
                 <CardDescription>
                   You can edit this value for more accuracy
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <Input
-                  type="number"
-                  value={estimatedFederalTax}
-                  onChange={(e) => setEstimatedFederalTax(e.target.value)}
-                />
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground">
+                    $
+                  </span>
+                  <Input
+                    type="number"
+                    value={estimatedFederalTax}
+                    className="pl-8"
+                    onChange={(e) => setEstimatedFederalTax(e.target.value)}
+                  />
+                </div>
+                <p className="text-sm text-muted-foreground mt-2">
+                  Effective tax rate: {federalEffectiveRate}%
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Estimated State Tax</CardTitle>
+                <CardDescription>
+                  You can edit this value for more accuracy
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground">
+                    $
+                  </span>
+                  <Input
+                    type="number"
+                    value={estimatedStateTax}
+                    className="pl-8"
+                    onChange={(e) => setEstimatedStateTax(e.target.value)}
+                  />
+                </div>
+                <p className="text-sm text-muted-foreground mt-2">
+                  Effective tax rate: {stateEffectiveRate}%
+                </p>
               </CardContent>
             </Card>
           </div>
@@ -230,6 +293,9 @@ export default function SaltCalculator() {
                   Relative amounts shown compared to current $10k cap.
                   <span className="text-green-600">Green = savings</span>,{" "}
                   <span className="text-red-600">Red = costs more</span>
+                  <br />
+                  <strong>Note:</strong> Proposed cap phases down by 30% of
+                  income over $500k (min $10k cap applies)
                 </span>
               </CardDescription>
             </CardHeader>

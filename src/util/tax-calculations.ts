@@ -108,17 +108,49 @@ export const calculateTotalTaxWithSalt = (
 };
 
 /**
+ * Calculate the effective SALT cap under the proposed legislation with phasedown
+ * Based on bill text: 30% reduction for income over $500k threshold, minimum $10k
+ */
+export const calculateProposedSaltCap = (
+  agi: number,
+  filingStatus: FilingStatus,
+): number => {
+  const baseCapAmount = 40000; // Base $40k cap
+  const currentCapAmount = 10000; // Current $10k cap (minimum floor)
+
+  // Determine threshold based on filing status
+  const threshold = filingStatus === "marriedSeparately" ? 250000 : 500000;
+
+  if (agi <= threshold) {
+    return baseCapAmount; // No phasedown
+  }
+
+  // Calculate phasedown reduction
+  const excess = agi - threshold;
+  const reduction = excess * 0.3; // 30% of excess
+  const effectiveCap = baseCapAmount - reduction;
+
+  // Cannot go below current $10k cap
+  return Math.max(effectiveCap, currentCapAmount);
+};
+
+/**
  * Generate chart data comparing different SALT cap scenarios
  */
 export const generateSaltComparisonData = (
   federalTax: number,
   stateTax: number,
   marginalTaxRate: number = 0.22,
+  agi: number = 0,
+  filingStatus: FilingStatus = "single",
 ): SaltScenarioData[] => {
   // Calculate SALT deductions for each scenario
   const noCapDeduction = stateTax;
   const cap10kDeduction = Math.min(stateTax, 10000);
-  const cap40kDeduction = Math.min(stateTax, 40000);
+
+  // Calculate the effective proposed cap with phasedown
+  const proposedCap = calculateProposedSaltCap(agi, filingStatus);
+  const proposedCapDeduction = Math.min(stateTax, proposedCap);
 
   // Calculate total tax for each scenario
   const noCapTotal = calculateTotalTaxWithSalt(
@@ -133,12 +165,20 @@ export const generateSaltComparisonData = (
     cap10kDeduction,
     marginalTaxRate,
   );
-  const cap40kTotal = calculateTotalTaxWithSalt(
+  const proposedCapTotal = calculateTotalTaxWithSalt(
     federalTax,
     stateTax,
-    cap40kDeduction,
+    proposedCapDeduction,
     marginalTaxRate,
   );
+
+  // Create scenario label that shows effective cap amount
+  const proposedScenarioLabel =
+    proposedCap === 40000
+      ? "Proposed ($40k Cap)"
+      : proposedCap === 10000
+      ? "Proposed ($10k Cap - Phased Out)"
+      : `Proposed ($${Math.round(proposedCap / 1000)}k Cap)`;
 
   return [
     {
@@ -158,11 +198,11 @@ export const generateSaltComparisonData = (
       ),
     },
     {
-      scenario: "Proposed ($40k Cap)",
-      totalTax: Math.round(cap40kTotal),
-      saltDeduction: Math.round(cap40kDeduction),
+      scenario: proposedScenarioLabel,
+      totalTax: Math.round(proposedCapTotal),
+      saltDeduction: Math.round(proposedCapDeduction),
       taxSavings: Math.round(
-        calculateSaltTaxSavings(cap40kDeduction, marginalTaxRate),
+        calculateSaltTaxSavings(proposedCapDeduction, marginalTaxRate),
       ),
     },
   ];
