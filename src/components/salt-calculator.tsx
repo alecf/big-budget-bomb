@@ -99,6 +99,7 @@ export default function SaltCalculator() {
     if (!currentCapData || !proposedCapData || !agi) return null;
 
     const agiNum = parseFloat(agi);
+
     const formattedAgi = `$${agiNum.toLocaleString()}`;
 
     const currentTax = currentCapData.totalTax;
@@ -107,7 +108,22 @@ export default function SaltCalculator() {
     const formattedDifference = `$${difference.toLocaleString()}`;
 
     if (difference === 0) {
-      return `With an income of ${formattedAgi}, this change in the proposed legislation does not affect you.`;
+      let summaryText = `With an income of ${formattedAgi}, this change in the proposed legislation does not affect you.`;
+
+      // Add phaseout explanation even when there's no tax difference
+      const threshold = filingStatus === "marriedSeparately" ? 250000 : 500000;
+      if (agiNum > threshold) {
+        const proposedCap = calculateProposedSaltCap(agiNum, filingStatus);
+
+        if (proposedCap <= 10000) {
+          summaryText += ` The new SALT cap is completely phased out at your income level, leaving you with the current $10k cap.`;
+        } else {
+          const capAmount = `$${Math.round(proposedCap / 1000)}k`;
+          summaryText += ` Your effective SALT cap is ${capAmount} due to the phasedown provision for high-income earners.`;
+        }
+      }
+
+      return summaryText;
     }
 
     const isLowerTax = proposedTax < currentTax;
@@ -121,7 +137,7 @@ export default function SaltCalculator() {
       const proposedCap = calculateProposedSaltCap(agiNum, filingStatus);
       const capAmount = `$${Math.round(proposedCap / 1000)}k`;
 
-      if (proposedCap === 10000) {
+      if (proposedCap <= 10000) {
         // Cap is completely phased out to current level
         summaryText += ` The new SALT cap is completely phased out at your income level, leaving you with the current $10k cap.`;
       } else {
