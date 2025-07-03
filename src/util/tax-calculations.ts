@@ -182,14 +182,6 @@ export const generateSaltComparisonData = (
 
   return [
     {
-      scenario: "No Cap",
-      totalTax: Math.round(noCapTotal),
-      saltDeduction: Math.round(noCapDeduction),
-      taxSavings: Math.round(
-        calculateSaltTaxSavings(noCapDeduction, marginalTaxRate),
-      ),
-    },
-    {
       scenario: "Current ($10k Cap)",
       totalTax: Math.round(cap10kTotal),
       saltDeduction: Math.round(cap10kDeduction),
@@ -203,6 +195,14 @@ export const generateSaltComparisonData = (
       saltDeduction: Math.round(proposedCapDeduction),
       taxSavings: Math.round(
         calculateSaltTaxSavings(proposedCapDeduction, marginalTaxRate),
+      ),
+    },
+    {
+      scenario: "No Cap",
+      totalTax: Math.round(noCapTotal),
+      saltDeduction: Math.round(noCapDeduction),
+      taxSavings: Math.round(
+        calculateSaltTaxSavings(noCapDeduction, marginalTaxRate),
       ),
     },
   ];
