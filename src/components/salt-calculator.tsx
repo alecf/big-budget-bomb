@@ -52,20 +52,22 @@ export default function SaltCalculator() {
   const [estimatedStateTax, setEstimatedStateTax] = useState<string>("");
   const [estimatedFederalTax, setEstimatedFederalTax] = useState<string>("");
   const [showResults, setShowResults] = useState(false);
+  const [isStateTaxEstimate, setIsStateTaxEstimate] = useState<boolean>(false);
 
   const handleCalculate = useCallback(() => {
     if (!agi || !selectedState) return;
 
     const agiNum = parseFloat(agi);
     const baseFederalTax = calculateFederalTax(agiNum, filingStatus);
-    const baseStateTax = estimateStateTax(
+    const stateTaxResult = estimateStateTax(
       agiNum,
       selectedState as StateName,
       filingStatus,
     );
 
     setEstimatedFederalTax(baseFederalTax.toFixed(0));
-    setEstimatedStateTax(baseStateTax.toFixed(0));
+    setEstimatedStateTax(stateTaxResult.amount.toFixed(0));
+    setIsStateTaxEstimate(stateTaxResult.isEstimate);
     setShowResults(true);
   }, [agi, selectedState, filingStatus]);
 
@@ -102,11 +104,15 @@ export default function SaltCalculator() {
 
   // Generate summary text
   const getSummaryText = () => {
-    if (!currentCapData || !proposedCapData || !agi) return null;
+    if (!currentCapData || !proposedCapData || !agi || !selectedState)
+      return null;
 
     const agiNum = parseFloat(agi);
-
     const formattedAgi = `$${agiNum.toLocaleString()}`;
+
+    // Check if state has income tax
+    const stateInfo = statesTaxInfo[selectedState as StateName];
+    const hasStateIncomeTax = stateInfo?.hasStateTax ?? false;
 
     const currentTax = currentCapData.totalTax;
     const proposedTax = proposedCapData.totalTax;
@@ -114,17 +120,24 @@ export default function SaltCalculator() {
     const formattedDifference = `$${difference.toLocaleString()}`;
 
     if (difference === 0) {
-      let summaryText = `With an income of ${formattedAgi}, this change in the proposed legislation does not affect you.`;
+      let summaryText;
 
-      // Add phaseout explanation even when there's no tax difference
-      if (isAbovePhasedownThreshold(agiNum, filingStatus)) {
-        const proposedCap = calculateProposedSaltCap(agiNum, filingStatus);
+      // Explain if it's due to no state income tax
+      if (!hasStateIncomeTax) {
+        summaryText = `Since ${selectedState} has no state income tax, the SALT cap changes do not impact your taxes.`;
+      } else {
+        summaryText = `With an income of ${formattedAgi}, this change in the proposed legislation does not affect you.`;
 
-        if (proposedCap <= SALT_CAP_CONSTANTS.CURRENT_CAP) {
-          summaryText += ` The new SALT cap is completely phased out at your income level, leaving you with the current $10k cap.`;
-        } else {
-          const capAmount = `$${Math.round(proposedCap / 1000)}k`;
-          summaryText += ` Your effective SALT cap is ${capAmount} due to the phasedown provision for high-income earners.`;
+        // Add phaseout explanation even when there's no tax difference
+        if (isAbovePhasedownThreshold(agiNum, filingStatus)) {
+          const proposedCap = calculateProposedSaltCap(agiNum, filingStatus);
+
+          if (proposedCap <= SALT_CAP_CONSTANTS.CURRENT_CAP) {
+            summaryText += ` The new SALT cap is completely phased out at your income level, leaving you with the current $10k cap.`;
+          } else {
+            const capAmount = `$${Math.round(proposedCap / 1000)}k`;
+            summaryText += ` Your effective SALT cap is ${capAmount} due to the phasedown provision for high-income earners.`;
+          }
         }
       }
 
@@ -134,18 +147,25 @@ export default function SaltCalculator() {
     const isLowerTax = proposedTax < currentTax;
     const direction = isLowerTax ? "lower" : "higher";
 
-    let summaryText = `With an income of ${formattedAgi}, you will pay ${direction} taxes by ${formattedDifference} in the proposed legislation.`;
+    let summaryText;
 
-    // Add phaseout explanation if applicable
-    if (isAbovePhasedownThreshold(agiNum, filingStatus)) {
-      const proposedCap = calculateProposedSaltCap(agiNum, filingStatus);
-      const capAmount = `$${Math.round(proposedCap / 1000)}k`;
+    // Add explanation based on state tax situation
+    if (!hasStateIncomeTax) {
+      summaryText = `You will pay ${direction} taxes by ${formattedDifference} in the proposed legislation. Since ${selectedState} has no state income tax, this difference comes from property taxes or other deductible state and local taxes.`;
+    } else {
+      summaryText = `With an income of ${formattedAgi}, you will pay ${direction} taxes by ${formattedDifference} in the proposed legislation.`;
 
-      if (proposedCap <= SALT_CAP_CONSTANTS.CURRENT_CAP) {
-        // Cap is completely phased out to current level
-        summaryText += ` The new SALT cap is completely phased out at your income level, leaving you with the current $10k cap.`;
-      } else {
-        summaryText += ` Your effective SALT cap is ${capAmount} due to the phasedown provision for high-income earners.`;
+      // Add phaseout explanation if applicable
+      if (isAbovePhasedownThreshold(agiNum, filingStatus)) {
+        const proposedCap = calculateProposedSaltCap(agiNum, filingStatus);
+        const capAmount = `$${Math.round(proposedCap / 1000)}k`;
+
+        if (proposedCap <= SALT_CAP_CONSTANTS.CURRENT_CAP) {
+          // Cap is completely phased out to current level
+          summaryText += ` The new SALT cap is completely phased out at your income level, leaving you with the current $10k cap.`;
+        } else {
+          summaryText += ` Your effective SALT cap is ${capAmount} due to the phasedown provision for high-income earners.`;
+        }
       }
     }
 
@@ -204,8 +224,8 @@ export default function SaltCalculator() {
         <h1 className="text-3xl font-bold mb-2">SALT Deduction Calculator</h1>
         <p className="text-muted-foreground">
           Calculate how the State and Local Tax (SALT) deduction cap affects
-          your tax burden. The proposed $40k cap phases down by 30% of income
-          over $500k (minimum $10k cap).
+          your taxes. The proposed $40k cap phases down by 30% of income over
+          $500k (minimum $10k cap).
         </p>
       </div>
 
@@ -234,6 +254,7 @@ export default function SaltCalculator() {
                   onChange={(e) => {
                     setAgi(e.target.value);
                     setShowResults(false);
+                    setIsStateTaxEstimate(false);
                   }}
                 />
               </div>
@@ -246,6 +267,7 @@ export default function SaltCalculator() {
                 onValueChange={(value: FilingStatus) => {
                   setFilingStatus(value);
                   setShowResults(false);
+                  setIsStateTaxEstimate(false);
                 }}
               >
                 <SelectTrigger>
@@ -268,6 +290,7 @@ export default function SaltCalculator() {
                 onValueChange={(value) => {
                   setSelectedState(value);
                   setShowResults(false);
+                  setIsStateTaxEstimate(false);
                 }}
               >
                 <SelectTrigger>
@@ -327,6 +350,12 @@ export default function SaltCalculator() {
                 <CardTitle>Estimated State Tax</CardTitle>
                 <CardDescription>
                   You can edit this value for more accuracy
+                  {isStateTaxEstimate && (
+                    <span className="block mt-1 text-yellow-600 dark:text-yellow-400 font-medium">
+                      ⚠️ This is an estimate - we don&apos;t have detailed tax
+                      brackets for {selectedState}
+                    </span>
+                  )}
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -359,7 +388,6 @@ export default function SaltCalculator() {
               <CardTitle>SALT Deduction Comparison</CardTitle>
               <CardDescription>
                 See how different SALT cap scenarios affect your total tax
-                burden
               </CardDescription>
             </CardHeader>
             <CardContent>

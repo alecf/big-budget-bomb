@@ -312,3 +312,8 @@ export interface SaltScenarioData {
   saltDeduction: number;
   taxSavings: number;
 }
+
+export interface StateTaxResult {
+  amount: number;
+  isEstimate: boolean;
+}

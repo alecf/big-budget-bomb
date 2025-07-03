@@ -1,4 +1,9 @@
-import type { FilingStatus, SaltScenarioData, StateName } from "./tax-data";
+import type {
+  FilingStatus,
+  SaltScenarioData,
+  StateName,
+  StateTaxResult,
+} from "./tax-data";
 import {
   federalTaxBrackets,
   getPhasedownThreshold,
@@ -69,26 +74,30 @@ const calculateStateTaxWithBrackets = (
 /**
  * Estimate state tax based on income and state
  * Uses progressive brackets when available, falls back to simplified calculation
+ * Returns both the tax amount and whether it's an estimate
  */
 export const estimateStateTax = (
   income: number,
   state: StateName,
   filingStatus: FilingStatus = "single",
-): number => {
+): StateTaxResult => {
   const stateInfo = statesTaxInfo[state];
-  if (!stateInfo || !stateInfo.hasStateTax) return 0;
+  if (!stateInfo || !stateInfo.hasStateTax) {
+    return { amount: 0, isEstimate: false };
+  }
 
   // Use actual brackets if available
   if ("hasBrackets" in stateInfo && stateInfo.hasBrackets) {
-    return calculateStateTaxWithBrackets(income, state, filingStatus);
+    const amount = calculateStateTaxWithBrackets(income, state, filingStatus);
+    return { amount, isEstimate: false };
   }
 
   // Fall back to simplified calculation using effective rate
-  return (
+  const amount =
     income *
     stateInfo.rate *
-    SALT_CAP_CONSTANTS.STATE_TAX_EFFECTIVE_RATE_MULTIPLIER
-  );
+    SALT_CAP_CONSTANTS.STATE_TAX_EFFECTIVE_RATE_MULTIPLIER;
+  return { amount, isEstimate: true };
 };
 
 /**
@@ -102,7 +111,7 @@ export const calculateSaltTaxSavings = (
 };
 
 /**
- * Calculate total tax burden with SALT deduction applied
+ * Calculate total tax with SALT deduction applied
  */
 export const calculateTotalTaxWithSalt = (
   federalTax: number,
