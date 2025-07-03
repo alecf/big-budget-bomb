@@ -31,6 +31,7 @@ import {
 // Import business logic and data
 import {
   calculateFederalTax,
+  calculateProposedSaltCap,
   estimateStateTax,
   generateSaltComparisonData,
   getEstimatedMarginalTaxRate,
@@ -88,6 +89,49 @@ export default function SaltCalculator() {
     (item) => item.scenario === "Current ($10k Cap)",
   );
 
+  // Find the proposed scenario for summary
+  const proposedCapData = chartData.find((item) =>
+    item.scenario.includes("Proposed"),
+  );
+
+  // Generate summary text
+  const getSummaryText = () => {
+    if (!currentCapData || !proposedCapData || !agi) return null;
+
+    const agiNum = parseFloat(agi);
+    const formattedAgi = `$${agiNum.toLocaleString()}`;
+
+    const currentTax = currentCapData.totalTax;
+    const proposedTax = proposedCapData.totalTax;
+    const difference = Math.abs(currentTax - proposedTax);
+    const formattedDifference = `$${difference.toLocaleString()}`;
+
+    if (difference === 0) {
+      return `With an income of ${formattedAgi}, this change in the proposed legislation does not affect you.`;
+    }
+
+    const isLowerTax = proposedTax < currentTax;
+    const direction = isLowerTax ? "lower" : "higher";
+
+    let summaryText = `With an income of ${formattedAgi}, you will pay ${direction} taxes by ${formattedDifference} in the proposed legislation.`;
+
+    // Add phaseout explanation if applicable
+    const threshold = filingStatus === "marriedSeparately" ? 250000 : 500000;
+    if (agiNum > threshold) {
+      const proposedCap = calculateProposedSaltCap(agiNum, filingStatus);
+      const capAmount = `$${Math.round(proposedCap / 1000)}k`;
+
+      if (proposedCap === 10000) {
+        // Cap is completely phased out to current level
+        summaryText += ` The new SALT cap is completely phased out at your income level, leaving you with the current $10k cap.`;
+      } else {
+        summaryText += ` Your effective SALT cap is ${capAmount} due to the phasedown provision for high-income earners.`;
+      }
+    }
+
+    return summaryText;
+  };
+
   const formatRelativeAmount = (
     amount: number,
     baseAmount: number,
@@ -131,6 +175,8 @@ export default function SaltCalculator() {
     estimatedFederalTax,
     agi,
   );
+
+  const summaryText = getSummaryText();
 
   return (
     <div className="container mx-auto p-6 max-w-4xl">
@@ -281,6 +327,12 @@ export default function SaltCalculator() {
               </CardContent>
             </Card>
           </div>
+
+          {summaryText && (
+            <div className="mb-6 p-4 bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-lg">
+              <p className="text-foreground font-medium">{summaryText}</p>
+            </div>
+          )}
 
           <Card className="mb-8">
             <CardHeader>
