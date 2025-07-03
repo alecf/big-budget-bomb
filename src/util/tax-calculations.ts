@@ -1,6 +1,9 @@
 import type { FilingStatus, SaltScenarioData, StateName } from "./tax-data";
 import {
   federalTaxBrackets,
+  getPhasedownThreshold,
+  isAbovePhasedownThreshold,
+  SALT_CAP_CONSTANTS,
   statesTaxInfo,
   stateTaxBrackets,
 } from "./tax-data";
@@ -81,7 +84,11 @@ export const estimateStateTax = (
   }
 
   // Fall back to simplified calculation using effective rate
-  return income * stateInfo.rate * 0.8; // Assume 80% effective rate
+  return (
+    income *
+    stateInfo.rate *
+    SALT_CAP_CONSTANTS.STATE_TAX_EFFECTIVE_RATE_MULTIPLIER
+  );
 };
 
 /**
@@ -89,7 +96,7 @@ export const estimateStateTax = (
  */
 export const calculateSaltTaxSavings = (
   saltDeduction: number,
-  marginalTaxRate: number = 0.22,
+  marginalTaxRate: number = SALT_CAP_CONSTANTS.DEFAULT_MARGINAL_TAX_RATE,
 ): number => {
   return saltDeduction * marginalTaxRate;
 };
@@ -101,7 +108,7 @@ export const calculateTotalTaxWithSalt = (
   federalTax: number,
   stateTax: number,
   saltDeduction: number,
-  marginalTaxRate: number = 0.22,
+  marginalTaxRate: number = SALT_CAP_CONSTANTS.DEFAULT_MARGINAL_TAX_RATE,
 ): number => {
   const taxSavings = calculateSaltTaxSavings(saltDeduction, marginalTaxRate);
   return federalTax + stateTax - taxSavings;
@@ -115,23 +122,19 @@ export const calculateProposedSaltCap = (
   agi: number,
   filingStatus: FilingStatus,
 ): number => {
-  const baseCapAmount = 40000; // Base $40k cap
-  const currentCapAmount = 10000; // Current $10k cap (minimum floor)
+  const threshold = getPhasedownThreshold(filingStatus);
 
-  // Determine threshold based on filing status
-  const threshold = filingStatus === "marriedSeparately" ? 250000 : 500000;
-
-  if (agi <= threshold) {
-    return baseCapAmount; // No phasedown
+  if (!isAbovePhasedownThreshold(agi, filingStatus)) {
+    return SALT_CAP_CONSTANTS.PROPOSED_BASE_CAP; // No phasedown
   }
 
   // Calculate phasedown reduction
   const excess = agi - threshold;
-  const reduction = excess * 0.3; // 30% of excess
-  const effectiveCap = baseCapAmount - reduction;
+  const reduction = excess * SALT_CAP_CONSTANTS.PHASEDOWN_RATE;
+  const effectiveCap = SALT_CAP_CONSTANTS.PROPOSED_BASE_CAP - reduction;
 
-  // Cannot go below current $10k cap
-  return Math.max(effectiveCap, currentCapAmount);
+  // Cannot go below current cap
+  return Math.max(effectiveCap, SALT_CAP_CONSTANTS.CURRENT_CAP);
 };
 
 /**
@@ -140,13 +143,16 @@ export const calculateProposedSaltCap = (
 export const generateSaltComparisonData = (
   federalTax: number,
   stateTax: number,
-  marginalTaxRate: number = 0.22,
+  marginalTaxRate: number = SALT_CAP_CONSTANTS.DEFAULT_MARGINAL_TAX_RATE,
   agi: number = 0,
   filingStatus: FilingStatus = "single",
 ): SaltScenarioData[] => {
   // Calculate SALT deductions for each scenario
   const noCapDeduction = stateTax;
-  const cap10kDeduction = Math.min(stateTax, 10000);
+  const currentCapDeduction = Math.min(
+    stateTax,
+    SALT_CAP_CONSTANTS.CURRENT_CAP,
+  );
 
   // Calculate the effective proposed cap with phasedown
   const proposedCap = calculateProposedSaltCap(agi, filingStatus);
@@ -159,10 +165,10 @@ export const generateSaltComparisonData = (
     noCapDeduction,
     marginalTaxRate,
   );
-  const cap10kTotal = calculateTotalTaxWithSalt(
+  const currentCapTotal = calculateTotalTaxWithSalt(
     federalTax,
     stateTax,
-    cap10kDeduction,
+    currentCapDeduction,
     marginalTaxRate,
   );
   const proposedCapTotal = calculateTotalTaxWithSalt(
@@ -174,19 +180,19 @@ export const generateSaltComparisonData = (
 
   // Create scenario label that shows effective cap amount
   const proposedScenarioLabel =
-    proposedCap === 40000
+    proposedCap === SALT_CAP_CONSTANTS.PROPOSED_BASE_CAP
       ? "Proposed ($40k Cap)"
-      : proposedCap === 10000
+      : proposedCap === SALT_CAP_CONSTANTS.CURRENT_CAP
       ? "Proposed ($10k Cap - Phased Out)"
       : `Proposed ($${Math.round(proposedCap / 1000)}k Cap)`;
 
   return [
     {
       scenario: "Current ($10k Cap)",
-      totalTax: Math.round(cap10kTotal),
-      saltDeduction: Math.round(cap10kDeduction),
+      totalTax: Math.round(currentCapTotal),
+      saltDeduction: Math.round(currentCapDeduction),
       taxSavings: Math.round(
-        calculateSaltTaxSavings(cap10kDeduction, marginalTaxRate),
+        calculateSaltTaxSavings(currentCapDeduction, marginalTaxRate),
       ),
     },
     {
@@ -224,6 +230,6 @@ export const getEstimatedMarginalTaxRate = (
     }
   }
 
-  // Default to 22% if we can't determine (this is a reasonable middle-class rate)
-  return 0.22;
+  // Default to the constant if we can't determine
+  return SALT_CAP_CONSTANTS.DEFAULT_MARGINAL_TAX_RATE;
 };

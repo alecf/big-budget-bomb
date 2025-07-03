@@ -1,3 +1,32 @@
+// SALT Deduction Constants
+export const SALT_CAP_CONSTANTS = {
+  CURRENT_CAP: 10000,
+  PROPOSED_BASE_CAP: 40000,
+  PHASEDOWN_RATE: 0.3, // 30% reduction
+  PHASEDOWN_THRESHOLD_DEFAULT: 500000,
+  PHASEDOWN_THRESHOLD_MARRIED_SEPARATELY: 250000,
+  DEFAULT_MARGINAL_TAX_RATE: 0.22,
+  STATE_TAX_EFFECTIVE_RATE_MULTIPLIER: 0.8, // 80% effective rate
+} as const;
+
+// Helper functions for filing status and threshold logic
+export const getPhasedownThreshold = (filingStatus: string): number => {
+  return filingStatus === "marriedSeparately"
+    ? SALT_CAP_CONSTANTS.PHASEDOWN_THRESHOLD_MARRIED_SEPARATELY
+    : SALT_CAP_CONSTANTS.PHASEDOWN_THRESHOLD_DEFAULT;
+};
+
+export const isAbovePhasedownThreshold = (
+  agi: number,
+  filingStatus: string,
+): boolean => {
+  return agi > getPhasedownThreshold(filingStatus);
+};
+
+export const isMarriedSeparately = (filingStatus: string): boolean => {
+  return filingStatus === "marriedSeparately";
+};
+
 // Federal tax brackets for 2024 (can be easily updated)
 export const federalTaxBrackets = {
   single: [

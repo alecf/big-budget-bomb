@@ -36,8 +36,14 @@ import {
   generateSaltComparisonData,
   getEstimatedMarginalTaxRate,
 } from "@/util/tax-calculations";
-import type { FilingStatus, StateName } from "@/util/tax-data";
-import { filingStatuses, statesTaxInfo } from "@/util/tax-data";
+import {
+  type FilingStatus,
+  SALT_CAP_CONSTANTS,
+  type StateName,
+  filingStatuses,
+  isAbovePhasedownThreshold,
+  statesTaxInfo,
+} from "@/util/tax-data";
 
 export default function SaltCalculator() {
   const [agi, setAgi] = useState<string>("");
@@ -111,11 +117,10 @@ export default function SaltCalculator() {
       let summaryText = `With an income of ${formattedAgi}, this change in the proposed legislation does not affect you.`;
 
       // Add phaseout explanation even when there's no tax difference
-      const threshold = filingStatus === "marriedSeparately" ? 250000 : 500000;
-      if (agiNum > threshold) {
+      if (isAbovePhasedownThreshold(agiNum, filingStatus)) {
         const proposedCap = calculateProposedSaltCap(agiNum, filingStatus);
 
-        if (proposedCap <= 10000) {
+        if (proposedCap <= SALT_CAP_CONSTANTS.CURRENT_CAP) {
           summaryText += ` The new SALT cap is completely phased out at your income level, leaving you with the current $10k cap.`;
         } else {
           const capAmount = `$${Math.round(proposedCap / 1000)}k`;
@@ -132,12 +137,11 @@ export default function SaltCalculator() {
     let summaryText = `With an income of ${formattedAgi}, you will pay ${direction} taxes by ${formattedDifference} in the proposed legislation.`;
 
     // Add phaseout explanation if applicable
-    const threshold = filingStatus === "marriedSeparately" ? 250000 : 500000;
-    if (agiNum > threshold) {
+    if (isAbovePhasedownThreshold(agiNum, filingStatus)) {
       const proposedCap = calculateProposedSaltCap(agiNum, filingStatus);
       const capAmount = `$${Math.round(proposedCap / 1000)}k`;
 
-      if (proposedCap <= 10000) {
+      if (proposedCap <= SALT_CAP_CONSTANTS.CURRENT_CAP) {
         // Cap is completely phased out to current level
         summaryText += ` The new SALT cap is completely phased out at your income level, leaving you with the current $10k cap.`;
       } else {
