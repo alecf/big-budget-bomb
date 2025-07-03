@@ -1,5 +1,9 @@
 import type { FilingStatus, SaltScenarioData, StateName } from "./tax-data";
-import { federalTaxBrackets, statesTaxInfo } from "./tax-data";
+import {
+  federalTaxBrackets,
+  statesTaxInfo,
+  stateTaxBrackets,
+} from "./tax-data";
 
 /**
  * Calculate federal tax based on income and filing status using progressive tax brackets
@@ -22,15 +26,61 @@ export const calculateFederalTax = (
 };
 
 /**
- * Estimate state tax based on income and state
- * This is a simplified calculation using effective rates
+ * Calculate state tax using progressive brackets when available
  */
-export const estimateStateTax = (income: number, state: StateName): number => {
+const calculateStateTaxWithBrackets = (
+  income: number,
+  state: StateName,
+  status: FilingStatus,
+): number => {
+  const stateBrackets =
+    stateTaxBrackets[state as keyof typeof stateTaxBrackets];
+  if (!stateBrackets) return 0;
+
+  // Map filing status to state bracket system (some states may not have all filing statuses)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let brackets: any = stateBrackets.single; // Default fallback
+
+  // For now, most states only have single and marriedJointly brackets
+  // Use marriedJointly for married filing jointly, otherwise default to single
+  if (
+    status === "marriedJointly" &&
+    "marriedJointly" in stateBrackets &&
+    stateBrackets.marriedJointly
+  ) {
+    brackets = stateBrackets.marriedJointly;
+  }
+
+  let totalTax = 0;
+
+  for (const bracket of brackets) {
+    if (income <= bracket.min) break;
+
+    const taxableInThisBracket = Math.min(income, bracket.max) - bracket.min;
+    totalTax += taxableInThisBracket * bracket.rate;
+  }
+
+  return totalTax;
+};
+
+/**
+ * Estimate state tax based on income and state
+ * Uses progressive brackets when available, falls back to simplified calculation
+ */
+export const estimateStateTax = (
+  income: number,
+  state: StateName,
+  filingStatus: FilingStatus = "single",
+): number => {
   const stateInfo = statesTaxInfo[state];
   if (!stateInfo || !stateInfo.hasStateTax) return 0;
 
-  // Simplified calculation - in reality this would need brackets too
-  // This is a rough estimate using effective rate
+  // Use actual brackets if available
+  if ("hasBrackets" in stateInfo && stateInfo.hasBrackets) {
+    return calculateStateTaxWithBrackets(income, state, filingStatus);
+  }
+
+  // Fall back to simplified calculation using effective rate
   return income * stateInfo.rate * 0.8; // Assume 80% effective rate
 };
 

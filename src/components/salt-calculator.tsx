@@ -51,7 +51,11 @@ export default function SaltCalculator() {
 
     const agiNum = parseFloat(agi);
     const baseFederalTax = calculateFederalTax(agiNum, filingStatus);
-    const baseStateTax = estimateStateTax(agiNum, selectedState as StateName);
+    const baseStateTax = estimateStateTax(
+      agiNum,
+      selectedState as StateName,
+      filingStatus,
+    );
 
     setEstimatedFederalTax(baseFederalTax.toFixed(0));
     setEstimatedStateTax(baseStateTax.toFixed(0));
