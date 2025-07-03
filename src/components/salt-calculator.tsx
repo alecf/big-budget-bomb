@@ -73,6 +73,35 @@ export default function SaltCalculator() {
 
   const chartData = getChartData();
 
+  // Find the current $10k cap scenario for relative comparisons
+  const currentCapData = chartData.find(
+    (item) => item.scenario === "Current ($10k Cap)",
+  );
+
+  const formatRelativeAmount = (
+    amount: number,
+    baseAmount: number,
+    isForTotalTax: boolean = true,
+  ) => {
+    const difference = amount - baseAmount;
+    if (difference === 0) return "";
+
+    const sign = difference > 0 ? "+" : "-";
+    const colorClass = isForTotalTax
+      ? difference > 0
+        ? "text-red-600"
+        : "text-green-600" // Total tax: red for increase, green for decrease
+      : difference > 0
+      ? "text-green-600"
+      : "text-red-600"; // Tax savings: green for more savings, red for less savings
+
+    return (
+      <span className={`text-sm ${colorClass} font-medium`}>
+        ({sign}${Math.abs(difference).toLocaleString()})
+      </span>
+    );
+  };
+
   return (
     <div className="container mx-auto p-6 max-w-4xl">
       <div className="mb-8">
@@ -192,6 +221,12 @@ export default function SaltCalculator() {
               <CardDescription>
                 See how different SALT cap scenarios affect your total tax
                 burden
+                <br />
+                <span className="text-xs text-muted-foreground mt-1 block">
+                  Relative amounts shown compared to current $10k cap.
+                  <span className="text-green-600">Green = savings</span>,{" "}
+                  <span className="text-red-600">Red = costs more</span>
+                </span>
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -202,14 +237,36 @@ export default function SaltCalculator() {
                     <XAxis dataKey="scenario" />
                     <YAxis />
                     <Tooltip
-                      formatter={(value, name) => [
-                        `$${value.toLocaleString()}`,
-                        name === "totalTax"
-                          ? "Total Tax"
-                          : name === "saltDeduction"
-                          ? "SALT Deduction"
-                          : "Tax Savings",
-                      ]}
+                      formatter={(value, name, props) => {
+                        const displayName =
+                          name === "totalTax"
+                            ? "Total Tax"
+                            : name === "saltDeduction"
+                            ? "SALT Deduction"
+                            : "Tax Savings";
+
+                        const currentValue =
+                          currentCapData?.[name as keyof typeof currentCapData];
+                        const scenario = props?.payload?.scenario;
+
+                        if (
+                          scenario === "Current ($10k Cap)" ||
+                          !currentValue
+                        ) {
+                          return [`$${value.toLocaleString()}`, displayName];
+                        }
+
+                        const difference = Number(value) - Number(currentValue);
+                        const sign = difference > 0 ? "+" : "-";
+                        const relativeText = ` (${sign}$${Math.abs(
+                          difference,
+                        ).toLocaleString()})`;
+
+                        return [
+                          `$${value.toLocaleString()}${relativeText}`,
+                          displayName,
+                        ];
+                      }}
                     />
                     <Bar dataKey="totalTax" fill="#8884d8" name="totalTax" />
                   </BarChart>
@@ -224,15 +281,47 @@ export default function SaltCalculator() {
                   >
                     <div>
                       <h3 className="font-semibold">{data.scenario}</h3>
-                      <p className="text-sm text-muted-foreground">
-                        SALT Deduction: ${data.saltDeduction.toLocaleString()} |
-                        Tax Savings: ${data.taxSavings.toLocaleString()}
-                      </p>
+                      <div className="text-sm text-muted-foreground space-y-1">
+                        <div className="flex items-center gap-2">
+                          <span>
+                            SALT Deduction: $
+                            {data.saltDeduction.toLocaleString()}
+                          </span>
+                          {currentCapData &&
+                            data.scenario !== "Current ($10k Cap)" &&
+                            formatRelativeAmount(
+                              data.saltDeduction,
+                              currentCapData.saltDeduction,
+                              false,
+                            )}
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span>
+                            Tax Savings: ${data.taxSavings.toLocaleString()}
+                          </span>
+                          {currentCapData &&
+                            data.scenario !== "Current ($10k Cap)" &&
+                            formatRelativeAmount(
+                              data.taxSavings,
+                              currentCapData.taxSavings,
+                              false,
+                            )}
+                        </div>
+                      </div>
                     </div>
                     <div className="text-right">
-                      <p className="text-lg font-bold">
-                        ${data.totalTax.toLocaleString()}
-                      </p>
+                      <div className="flex items-center gap-2 justify-end">
+                        <p className="text-lg font-bold">
+                          ${data.totalTax.toLocaleString()}
+                        </p>
+                        {currentCapData &&
+                          data.scenario !== "Current ($10k Cap)" &&
+                          formatRelativeAmount(
+                            data.totalTax,
+                            currentCapData.totalTax,
+                            true,
+                          )}
+                      </div>
                       <p className="text-sm text-muted-foreground">Total Tax</p>
                     </div>
                   </div>
