@@ -49,6 +49,7 @@ export default function SaltCalculator() {
   const [filingStatus, setFilingStatus] = useState<FilingStatus>("single");
   const [selectedState, setSelectedState] = useState<string>("");
   const [estimatedStateTax, setEstimatedStateTax] = useState<string>("");
+  const [propertyTax, setPropertyTax] = useState<string>("");
   const [estimatedFederalTax, setEstimatedFederalTax] = useState<string>("");
   const [showResults, setShowResults] = useState(false);
   const [isStateTaxEstimate, setIsStateTaxEstimate] = useState<boolean>(false);
@@ -75,6 +76,8 @@ export default function SaltCalculator() {
 
     const federalTax = parseFloat(estimatedFederalTax);
     const stateTax = parseFloat(estimatedStateTax);
+    const propertyTaxAmount = parseFloat(propertyTax) || 0;
+    const totalSaltBase = stateTax + propertyTaxAmount;
     const agiNum = parseFloat(agi);
 
     // Use actual marginal tax rate for more accurate calculations
@@ -82,7 +85,7 @@ export default function SaltCalculator() {
 
     return generateSaltComparisonData(
       federalTax,
-      stateTax,
+      totalSaltBase,
       marginalTaxRate,
       agiNum,
       filingStatus,
@@ -109,6 +112,7 @@ export default function SaltCalculator() {
     // Check if state has income tax
     const stateInfo = statesTaxInfo[selectedState as StateName];
     const hasStateIncomeTax = stateInfo?.hasStateTax ?? false;
+    const hasPropertyTax = parseFloat(propertyTax) > 0;
 
     const currentTax = currentCapData.totalTax;
     const bbbTax = bbbCapData.totalTax;
@@ -118,9 +122,11 @@ export default function SaltCalculator() {
     if (difference === 0) {
       let summaryText;
 
-      // Explain if it's due to no state income tax
-      if (!hasStateIncomeTax) {
-        summaryText = `Since ${selectedState} has no state income tax, the BBB SALT changes do not impact your taxes.`;
+      // Explain based on tax situation
+      if (!hasStateIncomeTax && !hasPropertyTax) {
+        summaryText = `Since ${selectedState} has no state income tax and you have no property tax, the BBB SALT changes do not impact your taxes.`;
+      } else if (!hasStateIncomeTax && hasPropertyTax) {
+        summaryText = `Since ${selectedState} has no state income tax, the BBB SALT changes are based only on your property tax. With your current property tax, the BBB SALT changes do not affect you.`;
       } else {
         summaryText = `With an income of ${formattedAgi}, the BBB SALT changes do not affect you.`;
 
@@ -146,22 +152,23 @@ export default function SaltCalculator() {
     let summaryText;
 
     // Add explanation based on state tax situation
-    if (!hasStateIncomeTax) {
-      summaryText = `You will pay ${direction} taxes by ${formattedDifference} under the BBB. Since ${selectedState} has no state income tax, this difference comes from property taxes or other deductible state and local taxes.`;
+    if (!hasStateIncomeTax && hasPropertyTax) {
+      summaryText = `You will pay ${direction} taxes by ${formattedDifference} under the BBB. Since ${selectedState} has no state income tax, this difference comes from your property tax deduction.`;
+    } else if (hasStateIncomeTax && hasPropertyTax) {
+      summaryText = `With an income of ${formattedAgi}, you will pay ${direction} taxes by ${formattedDifference} under the BBB. This calculation includes both your state income tax and property tax.`;
     } else {
       summaryText = `With an income of ${formattedAgi}, you will pay ${direction} taxes by ${formattedDifference} under the BBB.`;
+    }
 
-      // Add phaseout explanation if applicable
-      if (isAbovePhasedownThreshold(agiNum, filingStatus)) {
-        const bbbCap = calculateProposedSaltCap(agiNum, filingStatus);
-        const capAmount = `$${Math.round(bbbCap / 1000)}k`;
+    // Add phaseout explanation if applicable
+    if (isAbovePhasedownThreshold(agiNum, filingStatus)) {
+      const bbbCap = calculateProposedSaltCap(agiNum, filingStatus);
+      const capAmount = `$${Math.round(bbbCap / 1000)}k`;
 
-        if (bbbCap <= SALT_CAP_CONSTANTS.CURRENT_CAP) {
-          // Cap is completely phased out to current level
-          summaryText += ` The new SALT cap is completely phased out at your income level, leaving you with the current $10k cap.`;
-        } else {
-          summaryText += ` Your effective SALT cap is ${capAmount} due to the phasedown provision for high-income earners.`;
-        }
+      if (bbbCap <= SALT_CAP_CONSTANTS.CURRENT_CAP) {
+        summaryText += ` The new SALT cap is completely phased out at your income level, leaving you with the current $10k cap.`;
+      } else {
+        summaryText += ` Your effective SALT cap is ${capAmount} due to the phasedown provision for high-income earners.`;
       }
     }
 
@@ -287,6 +294,7 @@ export default function SaltCalculator() {
                 value={selectedState}
                 onValueChange={(value) => {
                   setSelectedState(value);
+                  setPropertyTax("");
                   setShowResults(false);
                   setIsStateTaxEstimate(false);
                 }}
@@ -305,6 +313,33 @@ export default function SaltCalculator() {
             </div>
           </div>
 
+          {selectedState && (
+            <div className="grid grid-cols-1 md:grid-cols-1 gap-6">
+              <div>
+                <Label htmlFor="property-tax">Property Tax (Annual)</Label>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground">
+                    $
+                  </span>
+                  <Input
+                    id="property-tax"
+                    type="number"
+                    placeholder="12,000"
+                    value={propertyTax}
+                    className="pl-8"
+                    onChange={(e) => {
+                      setPropertyTax(e.target.value);
+                      setShowResults(false);
+                    }}
+                  />
+                </div>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Enter your annual property tax amount. This will be combined with your state income tax for the total SALT deduction.
+                </p>
+              </div>
+            </div>
+          )}
+
           <Button
             onClick={handleCalculate}
             className="w-full"
@@ -317,7 +352,7 @@ export default function SaltCalculator() {
 
       {showResults && (
         <>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
             <Card>
               <CardHeader>
                 <CardTitle>Estimated Federal Tax (before deductions)</CardTitle>
@@ -373,6 +408,31 @@ export default function SaltCalculator() {
                 </p>
               </CardContent>
             </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Property Tax</CardTitle>
+                <CardDescription>
+                  Annual property tax amount
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground">
+                    $
+                  </span>
+                  <Input
+                    type="number"
+                    value={propertyTax}
+                    className="pl-8"
+                    onChange={(e) => setPropertyTax(e.target.value)}
+                  />
+                </div>
+                <p className="text-sm text-muted-foreground mt-2">
+                  Total SALT base: ${((parseFloat(estimatedStateTax) || 0) + (parseFloat(propertyTax) || 0)).toLocaleString()}
+                </p>
+              </CardContent>
+            </Card>
           </div>
 
           {summaryText && (
@@ -385,7 +445,7 @@ export default function SaltCalculator() {
             <CardHeader>
               <CardTitle>SALT Deduction Comparison</CardTitle>
               <CardDescription>
-                See how different SALT cap scenarios affect your total tax
+                See how different SALT cap scenarios affect your total tax. SALT deduction includes state income tax and property tax.
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -437,6 +497,9 @@ export default function SaltCalculator() {
                   Relative amounts shown compared to current $10k cap.{" "}
                   <span className="text-green-600">Green = savings</span>,{" "}
                   <span className="text-red-600">Red = costs more</span>
+                </p>
+                <p>
+                  <strong>SALT Deduction:</strong> Includes both state income tax and property tax combined
                 </p>
                 <p>
                   <strong>Note:</strong> BBB cap phases down by 30% of income
