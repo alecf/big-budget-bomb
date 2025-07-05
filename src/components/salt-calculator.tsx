@@ -243,7 +243,7 @@ export default function SaltCalculator() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <Label htmlFor="agi">Adjusted Gross Income (AGI)</Label>
               <div className="relative">
@@ -294,7 +294,6 @@ export default function SaltCalculator() {
                 value={selectedState}
                 onValueChange={(value) => {
                   setSelectedState(value);
-                  setPropertyTax("");
                   setShowResults(false);
                   setIsStateTaxEstimate(false);
                 }}
@@ -311,34 +310,30 @@ export default function SaltCalculator() {
                 </SelectContent>
               </Select>
             </div>
-          </div>
 
-          {selectedState && (
-            <div className="grid grid-cols-1 md:grid-cols-1 gap-6">
-              <div>
-                <Label htmlFor="property-tax">Property Tax (Annual)</Label>
-                <div className="relative">
-                  <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground">
-                    $
-                  </span>
-                  <Input
-                    id="property-tax"
-                    type="number"
-                    placeholder="12,000"
-                    value={propertyTax}
-                    className="pl-8"
-                    onChange={(e) => {
-                      setPropertyTax(e.target.value);
-                      setShowResults(false);
-                    }}
-                  />
-                </div>
-                <p className="text-sm text-muted-foreground mt-1">
-                  Enter your annual property tax amount. This will be combined with your state income tax for the total SALT deduction.
-                </p>
+            <div>
+              <Label htmlFor="property-tax">Property Tax (Annual)</Label>
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground">
+                  $
+                </span>
+                <Input
+                  id="property-tax"
+                  type="number"
+                  placeholder="12,000"
+                  value={propertyTax}
+                  className="pl-8"
+                  onChange={(e) => {
+                    setPropertyTax(e.target.value);
+                    setShowResults(false);
+                  }}
+                />
               </div>
+              <p className="text-sm text-muted-foreground mt-1">
+                Enter your annual property tax amount. Leave blank if none. This will be combined with your state income tax for the total SALT deduction.
+              </p>
             </div>
-          )}
+          </div>
 
           <Button
             onClick={handleCalculate}
