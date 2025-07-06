@@ -539,7 +539,7 @@ export default function SaltCalculator() {
                       </div>
                     </div>
                     <div className="text-right">
-                      <div className="flex items-center gap-2 justify-end">
+                      <div className="flex flex-col items-end gap-1">
                         <p className="text-lg font-bold">
                           ${data.totalTax.toLocaleString()}
                         </p>
