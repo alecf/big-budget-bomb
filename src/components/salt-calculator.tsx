@@ -16,7 +16,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   Bar,
   BarChart,
@@ -45,15 +45,54 @@ import {
   stateLookup,
 } from "@/util/tax-data";
 
+// Custom hook for session storage
+function useSessionStorage<T>(key: string, initialValue: T): [T, (value: T) => void] {
+  const [storedValue, setStoredValue] = useState<T>(() => {
+    if (typeof window === "undefined") {
+      return initialValue;
+    }
+    try {
+      const item = window.sessionStorage.getItem(key);
+      return item ? JSON.parse(item) : initialValue;
+    } catch (error) {
+      console.log(error);
+      return initialValue;
+    }
+  });
+
+  const setValue = useCallback((value: T) => {
+    try {
+      setStoredValue(value);
+      if (typeof window !== "undefined") {
+        window.sessionStorage.setItem(key, JSON.stringify(value));
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  }, [key]);
+
+  return [storedValue, setValue];
+}
+
 export default function SaltCalculator() {
-  const [agi, setAgi] = useState<string>("");
-  const [filingStatus, setFilingStatus] = useState<FilingStatus>("single");
-  const [selectedState, setSelectedState] = useState<string>("");
-  const [estimatedStateTax, setEstimatedStateTax] = useState<string>("");
-  const [propertyTax, setPropertyTax] = useState<string>("");
-  const [estimatedFederalTax, setEstimatedFederalTax] = useState<string>("");
+  // Use session storage for persisting form data
+  const [agi, setAgi] = useSessionStorage<string>("salt-calculator-agi", "");
+  const [filingStatus, setFilingStatus] = useSessionStorage<FilingStatus>("salt-calculator-filing-status", "single");
+  const [selectedState, setSelectedState] = useSessionStorage<string>("salt-calculator-state", "");
+  const [estimatedStateTax, setEstimatedStateTax] = useSessionStorage<string>("salt-calculator-state-tax", "");
+  const [propertyTax, setPropertyTax] = useSessionStorage<string>("salt-calculator-property-tax", "");
+  const [estimatedFederalTax, setEstimatedFederalTax] = useSessionStorage<string>("salt-calculator-federal-tax", "");
+  
+  // These don't need to be persisted as they're derived from the form data
   const [showResults, setShowResults] = useState(false);
   const [isStateTaxEstimate, setIsStateTaxEstimate] = useState<boolean>(false);
+
+  // Auto-show results if we have persisted data
+  useEffect(() => {
+    if (agi && selectedState && estimatedFederalTax && estimatedStateTax) {
+      setShowResults(true);
+    }
+  }, [agi, selectedState, estimatedFederalTax, estimatedStateTax]);
 
   const handleCalculate = useCallback(() => {
     if (!agi || !selectedState) return;
@@ -70,7 +109,7 @@ export default function SaltCalculator() {
     setEstimatedStateTax(stateTaxResult.amount.toFixed(0));
     setIsStateTaxEstimate(stateTaxResult.isEstimate);
     setShowResults(true);
-  }, [agi, selectedState, filingStatus]);
+  }, [agi, selectedState, filingStatus, setEstimatedFederalTax, setEstimatedStateTax]);
 
   const getChartData = () => {
     if (!estimatedFederalTax || !estimatedStateTax) return [];
