@@ -69,7 +69,7 @@ export const federalTaxBrackets = {
 
 // State tax brackets for 2025 (where available)
 export const stateTaxBrackets = {
-  California: {
+  CA: {
     single: [
       { min: 0, max: 10099, rate: 0.01 },
       { min: 10099, max: 23942, rate: 0.02 },
@@ -93,7 +93,7 @@ export const stateTaxBrackets = {
       { min: 1354556, max: Infinity, rate: 0.123 },
     ],
   },
-  "New York": {
+  NY: {
     single: [
       { min: 0, max: 8500, rate: 0.04 },
       { min: 8500, max: 11700, rate: 0.045 },
@@ -117,7 +117,7 @@ export const stateTaxBrackets = {
       { min: 25000000, max: Infinity, rate: 0.109 },
     ],
   },
-  Minnesota: {
+  MN: {
     single: [
       { min: 0, max: 29458, rate: 0.0535 },
       { min: 29458, max: 96770, rate: 0.068 },
@@ -131,7 +131,7 @@ export const stateTaxBrackets = {
       { min: 284810, max: Infinity, rate: 0.0985 },
     ],
   },
-  Oregon: {
+  OR: {
     single: [
       { min: 0, max: 4050, rate: 0.0475 },
       { min: 4050, max: 10200, rate: 0.0675 },
@@ -147,7 +147,7 @@ export const stateTaxBrackets = {
       { min: 128000, max: Infinity, rate: 0.099 },
     ],
   },
-  Hawaii: {
+  HI: {
     single: [
       { min: 0, max: 2400, rate: 0.014 },
       { min: 2400, max: 4800, rate: 0.032 },
@@ -177,7 +177,7 @@ export const stateTaxBrackets = {
       { min: 400000, max: Infinity, rate: 0.11 },
     ],
   },
-  Vermont: {
+  VT: {
     single: [
       { min: 0, max: 42150, rate: 0.0335 },
       { min: 42150, max: 102050, rate: 0.066 },
@@ -191,7 +191,7 @@ export const stateTaxBrackets = {
       { min: 260550, max: Infinity, rate: 0.0875 },
     ],
   },
-  Maine: {
+  ME: {
     single: [
       { min: 0, max: 24500, rate: 0.058 },
       { min: 24500, max: 58050, rate: 0.0675 },
@@ -203,11 +203,11 @@ export const stateTaxBrackets = {
       { min: 116100, max: Infinity, rate: 0.0715 },
     ],
   },
-  Massachusetts: {
+  MA: {
     single: [{ min: 0, max: Infinity, rate: 0.05 }],
     marriedJointly: [{ min: 0, max: Infinity, rate: 0.05 }],
   },
-  "New Jersey": {
+  NJ: {
     single: [
       { min: 0, max: 20000, rate: 0.014 },
       { min: 20000, max: 35000, rate: 0.0175 },
@@ -232,56 +232,110 @@ export const stateTaxBrackets = {
 
 // State tax information (simplified estimates for states without brackets)
 export const statesTaxInfo = {
-  Alabama: { rate: 0.05, hasStateTax: true },
-  Alaska: { rate: 0, hasStateTax: false },
-  Arizona: { rate: 0.045, hasStateTax: true },
-  Arkansas: { rate: 0.055, hasStateTax: true },
-  California: { rate: 0.093, hasStateTax: true, hasBrackets: true },
-  Colorado: { rate: 0.0455, hasStateTax: true },
-  Connecticut: { rate: 0.07, hasStateTax: true },
-  Delaware: { rate: 0.066, hasStateTax: true },
-  Florida: { rate: 0, hasStateTax: false },
-  Georgia: { rate: 0.0575, hasStateTax: true },
-  Hawaii: { rate: 0.08, hasStateTax: true, hasBrackets: true },
-  Idaho: { rate: 0.058, hasStateTax: true },
-  Illinois: { rate: 0.0495, hasStateTax: true },
-  Indiana: { rate: 0.032, hasStateTax: true },
-  Iowa: { rate: 0.06, hasStateTax: true },
-  Kansas: { rate: 0.057, hasStateTax: true },
-  Kentucky: { rate: 0.045, hasStateTax: true },
-  Louisiana: { rate: 0.04, hasStateTax: true },
-  Maine: { rate: 0.075, hasStateTax: true, hasBrackets: true },
-  Maryland: { rate: 0.0575, hasStateTax: true },
-  Massachusetts: { rate: 0.05, hasStateTax: true, hasBrackets: true },
-  Michigan: { rate: 0.0425, hasStateTax: true },
-  Minnesota: { rate: 0.0985, hasStateTax: true, hasBrackets: true },
-  Mississippi: { rate: 0.05, hasStateTax: true },
-  Missouri: { rate: 0.054, hasStateTax: true },
-  Montana: { rate: 0.0675, hasStateTax: true },
-  Nebraska: { rate: 0.0684, hasStateTax: true },
-  Nevada: { rate: 0, hasStateTax: false },
-  "New Hampshire": { rate: 0, hasStateTax: false },
-  "New Jersey": { rate: 0.1075, hasStateTax: true, hasBrackets: true },
-  "New Mexico": { rate: 0.049, hasStateTax: true },
-  "New York": { rate: 0.109, hasStateTax: true, hasBrackets: true },
-  "North Carolina": { rate: 0.0475, hasStateTax: true },
-  "North Dakota": { rate: 0.029, hasStateTax: true },
-  Ohio: { rate: 0.0385, hasStateTax: true },
-  Oklahoma: { rate: 0.05, hasStateTax: true },
-  Oregon: { rate: 0.099, hasStateTax: true, hasBrackets: true },
-  Pennsylvania: { rate: 0.0307, hasStateTax: true },
-  "Rhode Island": { rate: 0.0599, hasStateTax: true },
-  "South Carolina": { rate: 0.065, hasStateTax: true },
-  "South Dakota": { rate: 0, hasStateTax: false },
-  Tennessee: { rate: 0, hasStateTax: false },
-  Texas: { rate: 0, hasStateTax: false },
-  Utah: { rate: 0.0485, hasStateTax: true },
-  Vermont: { rate: 0.086, hasStateTax: true, hasBrackets: true },
-  Virginia: { rate: 0.0575, hasStateTax: true },
-  Washington: { rate: 0, hasStateTax: false },
-  "West Virginia": { rate: 0.065, hasStateTax: true },
-  Wisconsin: { rate: 0.0765, hasStateTax: true },
-  Wyoming: { rate: 0, hasStateTax: false },
+  AL: { rate: 0.05, hasStateTax: true },
+  AK: { rate: 0, hasStateTax: false },
+  AZ: { rate: 0.045, hasStateTax: true },
+  AR: { rate: 0.055, hasStateTax: true },
+  CA: { rate: 0.093, hasStateTax: true, hasBrackets: true },
+  CO: { rate: 0.0455, hasStateTax: true },
+  CT: { rate: 0.07, hasStateTax: true },
+  DE: { rate: 0.066, hasStateTax: true },
+  FL: { rate: 0, hasStateTax: false },
+  GA: { rate: 0.0575, hasStateTax: true },
+  HI: { rate: 0.08, hasStateTax: true, hasBrackets: true },
+  ID: { rate: 0.058, hasStateTax: true },
+  IL: { rate: 0.0495, hasStateTax: true },
+  IN: { rate: 0.032, hasStateTax: true },
+  IA: { rate: 0.06, hasStateTax: true },
+  KS: { rate: 0.057, hasStateTax: true },
+  KY: { rate: 0.045, hasStateTax: true },
+  LA: { rate: 0.04, hasStateTax: true },
+  ME: { rate: 0.075, hasStateTax: true, hasBrackets: true },
+  MD: { rate: 0.0575, hasStateTax: true },
+  MA: { rate: 0.05, hasStateTax: true, hasBrackets: true },
+  MI: { rate: 0.0425, hasStateTax: true },
+  MN: { rate: 0.0985, hasStateTax: true, hasBrackets: true },
+  MS: { rate: 0.05, hasStateTax: true },
+  MO: { rate: 0.054, hasStateTax: true },
+  MT: { rate: 0.0675, hasStateTax: true },
+  NE: { rate: 0.0684, hasStateTax: true },
+  NV: { rate: 0, hasStateTax: false },
+  NH: { rate: 0, hasStateTax: false },
+  NJ: { rate: 0.1075, hasStateTax: true, hasBrackets: true },
+  NM: { rate: 0.049, hasStateTax: true },
+  NY: { rate: 0.109, hasStateTax: true, hasBrackets: true },
+  NC: { rate: 0.0475, hasStateTax: true },
+  ND: { rate: 0.029, hasStateTax: true },
+  OH: { rate: 0.0385, hasStateTax: true },
+  OK: { rate: 0.05, hasStateTax: true },
+  OR: { rate: 0.099, hasStateTax: true, hasBrackets: true },
+  PA: { rate: 0.0307, hasStateTax: true },
+  RI: { rate: 0.0599, hasStateTax: true },
+  SC: { rate: 0.065, hasStateTax: true },
+  SD: { rate: 0, hasStateTax: false },
+  TN: { rate: 0, hasStateTax: false },
+  TX: { rate: 0, hasStateTax: false },
+  UT: { rate: 0.0485, hasStateTax: true },
+  VT: { rate: 0.086, hasStateTax: true, hasBrackets: true },
+  VA: { rate: 0.0575, hasStateTax: true },
+  WA: { rate: 0, hasStateTax: false },
+  WV: { rate: 0.065, hasStateTax: true },
+  WI: { rate: 0.0765, hasStateTax: true },
+  WY: { rate: 0, hasStateTax: false },
+} as const;
+
+// Lookup object to get display names from state codes
+export const stateLookup = {
+  AL: "Alabama",
+  AK: "Alaska", 
+  AZ: "Arizona",
+  AR: "Arkansas",
+  CA: "California",
+  CO: "Colorado",
+  CT: "Connecticut",
+  DE: "Delaware",
+  FL: "Florida",
+  GA: "Georgia",
+  HI: "Hawaii",
+  ID: "Idaho",
+  IL: "Illinois",
+  IN: "Indiana",
+  IA: "Iowa",
+  KS: "Kansas",
+  KY: "Kentucky",
+  LA: "Louisiana",
+  ME: "Maine",
+  MD: "Maryland",
+  MA: "Massachusetts",
+  MI: "Michigan",
+  MN: "Minnesota",
+  MS: "Mississippi",
+  MO: "Missouri",
+  MT: "Montana",
+  NE: "Nebraska",
+  NV: "Nevada",
+  NH: "New Hampshire",
+  NJ: "New Jersey",
+  NM: "New Mexico",
+  NY: "New York",
+  NC: "North Carolina",
+  ND: "North Dakota",
+  OH: "Ohio",
+  OK: "Oklahoma",
+  OR: "Oregon",
+  PA: "Pennsylvania",
+  RI: "Rhode Island",
+  SC: "South Carolina",
+  SD: "South Dakota",
+  TN: "Tennessee",
+  TX: "Texas",
+  UT: "Utah",
+  VT: "Vermont",
+  VA: "Virginia",
+  WA: "Washington",
+  WV: "West Virginia",
+  WI: "Wisconsin",
+  WY: "Wyoming",
 } as const;
 
 export const filingStatuses = [
