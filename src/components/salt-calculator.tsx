@@ -42,11 +42,12 @@ import {
   filingStatuses,
   isAbovePhasedownThreshold,
   statesTaxInfo,
+  stateLookup,
 } from "@/util/tax-data";
 
 export default function SaltCalculator() {
   const [agi, setAgi] = useState<string>("");
-  const [filingStatus, setFilingStatus] = useState<FilingStatus>("single");
+  const [filingStatus, setFilingStatus] = useState<FilingStatus>("S");
   const [selectedState, setSelectedState] = useState<string>("");
   const [estimatedStateTax, setEstimatedStateTax] = useState<string>("");
   const [propertyTax, setPropertyTax] = useState<string>("");
@@ -108,6 +109,7 @@ export default function SaltCalculator() {
 
     const agiNum = parseFloat(agi);
     const formattedAgi = `$${agiNum.toLocaleString()}`;
+    const stateName = stateLookup[selectedState as StateName];
 
     // Check if state has income tax
     const stateInfo = statesTaxInfo[selectedState as StateName];
@@ -124,9 +126,9 @@ export default function SaltCalculator() {
 
       // Explain based on tax situation
       if (!hasStateIncomeTax && !hasPropertyTax) {
-        summaryText = `Since ${selectedState} has no state income tax and you have no property tax, the BBB SALT changes do not impact your taxes.`;
+        summaryText = `Since ${stateName} has no state income tax and you have no property tax, the BBB SALT changes do not impact your taxes.`;
       } else if (!hasStateIncomeTax && hasPropertyTax) {
-        summaryText = `Since ${selectedState} has no state income tax, the BBB SALT changes are based only on your property tax. With your current property tax, the BBB SALT changes do not affect you.`;
+        summaryText = `Since ${stateName} has no state income tax, the BBB SALT changes are based only on your property tax. With your current property tax, the BBB SALT changes do not affect you.`;
       } else {
         summaryText = `With an income of ${formattedAgi}, the BBB SALT changes do not affect you.`;
 
@@ -153,7 +155,7 @@ export default function SaltCalculator() {
 
     // Add explanation based on state tax situation
     if (!hasStateIncomeTax && hasPropertyTax) {
-      summaryText = `You will pay ${direction} taxes by ${formattedDifference} under the BBB. Since ${selectedState} has no state income tax, this difference comes from your property tax deduction.`;
+      summaryText = `You will pay ${direction} taxes by ${formattedDifference} under the BBB. Since ${stateName} has no state income tax, this difference comes from your property tax deduction.`;
     } else if (hasStateIncomeTax && hasPropertyTax) {
       summaryText = `With an income of ${formattedAgi}, you will pay ${direction} taxes by ${formattedDifference} under the BBB. This calculation includes both your state income tax and property tax.`;
     } else {
@@ -302,9 +304,9 @@ export default function SaltCalculator() {
                   <SelectValue placeholder="Select your state" />
                 </SelectTrigger>
                 <SelectContent>
-                  {Object.keys(statesTaxInfo).map((state) => (
-                    <SelectItem key={state} value={state}>
-                      {state}
+                  {Object.entries(stateLookup).map(([stateCode, stateName]) => (
+                    <SelectItem key={stateCode} value={stateCode}>
+                      {stateName}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -381,7 +383,7 @@ export default function SaltCalculator() {
                   {isStateTaxEstimate && (
                     <span className="block mt-1 text-yellow-600 dark:text-yellow-400 font-medium">
                       ⚠️ This is an estimate - we don&apos;t have detailed tax
-                      brackets for {selectedState}
+                      brackets for {stateLookup[selectedState as StateName]}
                     </span>
                   )}
                 </CardDescription>
