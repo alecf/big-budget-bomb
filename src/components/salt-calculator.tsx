@@ -47,7 +47,7 @@ import {
 
 export default function SaltCalculator() {
   const [agi, setAgi] = useState<string>("");
-  const [filingStatus, setFilingStatus] = useState<FilingStatus>("S");
+  const [filingStatus, setFilingStatus] = useState<FilingStatus>("single");
   const [selectedState, setSelectedState] = useState<string>("");
   const [estimatedStateTax, setEstimatedStateTax] = useState<string>("");
   const [propertyTax, setPropertyTax] = useState<string>("");

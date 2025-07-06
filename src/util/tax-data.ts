@@ -11,7 +11,7 @@ export const SALT_CAP_CONSTANTS = {
 
 // Helper functions for filing status and threshold logic
 export const getPhasedownThreshold = (filingStatus: string): number => {
-  return filingStatus === "MS"
+  return filingStatus === "marriedSeparately"
     ? SALT_CAP_CONSTANTS.PHASEDOWN_THRESHOLD_MARRIED_SEPARATELY
     : SALT_CAP_CONSTANTS.PHASEDOWN_THRESHOLD_DEFAULT;
 };
@@ -24,12 +24,12 @@ export const isAbovePhasedownThreshold = (
 };
 
 export const isMarriedSeparately = (filingStatus: string): boolean => {
-  return filingStatus === "MS";
+  return filingStatus === "marriedSeparately";
 };
 
 // Federal tax brackets for 2024 (can be easily updated)
 export const federalTaxBrackets = {
-  S: [
+  single: [
     { min: 0, max: 11000, rate: 0.1 },
     { min: 11000, max: 44725, rate: 0.12 },
     { min: 44725, max: 95375, rate: 0.22 },
@@ -38,7 +38,7 @@ export const federalTaxBrackets = {
     { min: 231250, max: 578125, rate: 0.35 },
     { min: 578125, max: Infinity, rate: 0.37 },
   ],
-  MJ: [
+  marriedJointly: [
     { min: 0, max: 22000, rate: 0.1 },
     { min: 22000, max: 89450, rate: 0.12 },
     { min: 89450, max: 190750, rate: 0.22 },
@@ -47,7 +47,7 @@ export const federalTaxBrackets = {
     { min: 462500, max: 693750, rate: 0.35 },
     { min: 693750, max: Infinity, rate: 0.37 },
   ],
-  MS: [
+  marriedSeparately: [
     { min: 0, max: 11000, rate: 0.1 },
     { min: 11000, max: 44725, rate: 0.12 },
     { min: 44725, max: 95375, rate: 0.22 },
@@ -56,7 +56,7 @@ export const federalTaxBrackets = {
     { min: 231250, max: 346875, rate: 0.35 },
     { min: 346875, max: Infinity, rate: 0.37 },
   ],
-  HH: [
+  headOfHousehold: [
     { min: 0, max: 15700, rate: 0.1 },
     { min: 15700, max: 59850, rate: 0.12 },
     { min: 59850, max: 95350, rate: 0.22 },
@@ -70,7 +70,7 @@ export const federalTaxBrackets = {
 // State tax brackets for 2025 (where available)
 export const stateTaxBrackets = {
   CA: {
-    S: [
+    single: [
       { min: 0, max: 10099, rate: 0.01 },
       { min: 10099, max: 23942, rate: 0.02 },
       { min: 23942, max: 37788, rate: 0.04 },
@@ -81,7 +81,7 @@ export const stateTaxBrackets = {
       { min: 406364, max: 677278, rate: 0.113 },
       { min: 677278, max: Infinity, rate: 0.123 },
     ],
-    MJ: [
+    marriedJointly: [
       { min: 0, max: 20198, rate: 0.01 },
       { min: 20198, max: 47884, rate: 0.02 },
       { min: 47884, max: 75576, rate: 0.04 },
@@ -94,7 +94,7 @@ export const stateTaxBrackets = {
     ],
   },
   NY: {
-    S: [
+    single: [
       { min: 0, max: 8500, rate: 0.04 },
       { min: 8500, max: 11700, rate: 0.045 },
       { min: 11700, max: 13900, rate: 0.0525 },
@@ -105,7 +105,7 @@ export const stateTaxBrackets = {
       { min: 5000000, max: 25000000, rate: 0.103 },
       { min: 25000000, max: Infinity, rate: 0.109 },
     ],
-    MJ: [
+    marriedJointly: [
       { min: 0, max: 17150, rate: 0.04 },
       { min: 17150, max: 23600, rate: 0.045 },
       { min: 23600, max: 27900, rate: 0.0525 },
@@ -118,13 +118,13 @@ export const stateTaxBrackets = {
     ],
   },
   MN: {
-    S: [
+    single: [
       { min: 0, max: 29458, rate: 0.0535 },
       { min: 29458, max: 96770, rate: 0.068 },
       { min: 96770, max: 174020, rate: 0.0785 },
       { min: 174020, max: Infinity, rate: 0.0985 },
     ],
-    MJ: [
+    marriedJointly: [
       { min: 0, max: 44690, rate: 0.0535 },
       { min: 44690, max: 177460, rate: 0.068 },
       { min: 177460, max: 284810, rate: 0.0785 },
@@ -132,14 +132,14 @@ export const stateTaxBrackets = {
     ],
   },
   OR: {
-    S: [
+    single: [
       { min: 0, max: 4050, rate: 0.0475 },
       { min: 4050, max: 10200, rate: 0.0675 },
       { min: 10200, max: 25550, rate: 0.0875 },
       { min: 25550, max: 64000, rate: 0.099 },
       { min: 64000, max: Infinity, rate: 0.099 },
     ],
-    MJ: [
+    marriedJointly: [
       { min: 0, max: 8100, rate: 0.0475 },
       { min: 8100, max: 20400, rate: 0.0675 },
       { min: 20400, max: 51100, rate: 0.0875 },
@@ -148,7 +148,7 @@ export const stateTaxBrackets = {
     ],
   },
   HI: {
-    S: [
+    single: [
       { min: 0, max: 2400, rate: 0.014 },
       { min: 2400, max: 4800, rate: 0.032 },
       { min: 4800, max: 9600, rate: 0.055 },
@@ -162,7 +162,7 @@ export const stateTaxBrackets = {
       { min: 175000, max: 200000, rate: 0.1 },
       { min: 200000, max: Infinity, rate: 0.11 },
     ],
-    MJ: [
+    marriedJointly: [
       { min: 0, max: 4800, rate: 0.014 },
       { min: 4800, max: 9600, rate: 0.032 },
       { min: 9600, max: 19200, rate: 0.055 },
@@ -178,13 +178,13 @@ export const stateTaxBrackets = {
     ],
   },
   VT: {
-    S: [
+    single: [
       { min: 0, max: 42150, rate: 0.0335 },
       { min: 42150, max: 102050, rate: 0.066 },
       { min: 102050, max: 208450, rate: 0.076 },
       { min: 208450, max: Infinity, rate: 0.0875 },
     ],
-    MJ: [
+    marriedJointly: [
       { min: 0, max: 70400, rate: 0.0335 },
       { min: 70400, max: 170050, rate: 0.066 },
       { min: 170050, max: 260550, rate: 0.076 },
@@ -192,23 +192,23 @@ export const stateTaxBrackets = {
     ],
   },
   ME: {
-    S: [
+    single: [
       { min: 0, max: 24500, rate: 0.058 },
       { min: 24500, max: 58050, rate: 0.0675 },
       { min: 58050, max: Infinity, rate: 0.0715 },
     ],
-    MJ: [
+    marriedJointly: [
       { min: 0, max: 49000, rate: 0.058 },
       { min: 49000, max: 116100, rate: 0.0675 },
       { min: 116100, max: Infinity, rate: 0.0715 },
     ],
   },
   MA: {
-    S: [{ min: 0, max: Infinity, rate: 0.05 }],
-    MJ: [{ min: 0, max: Infinity, rate: 0.05 }],
+    single: [{ min: 0, max: Infinity, rate: 0.05 }],
+    marriedJointly: [{ min: 0, max: Infinity, rate: 0.05 }],
   },
   NJ: {
-    S: [
+    single: [
       { min: 0, max: 20000, rate: 0.014 },
       { min: 20000, max: 35000, rate: 0.0175 },
       { min: 35000, max: 40000, rate: 0.035 },
@@ -217,7 +217,7 @@ export const stateTaxBrackets = {
       { min: 500000, max: 1000000, rate: 0.0897 },
       { min: 1000000, max: Infinity, rate: 0.1075 },
     ],
-    MJ: [
+    marriedJointly: [
       { min: 0, max: 20000, rate: 0.014 },
       { min: 20000, max: 50000, rate: 0.0175 },
       { min: 50000, max: 70000, rate: 0.0245 },
@@ -284,14 +284,7 @@ export const statesTaxInfo = {
   WY: { rate: 0, hasStateTax: false },
 } as const;
 
-// Lookup objects to get display names from machine keys
-export const filingStatusLookup = {
-  S: "Single",
-  MJ: "Married Filing Jointly", 
-  MS: "Married Filing Separately",
-  HH: "Head of Household",
-} as const;
-
+// Lookup object to get display names from state codes
 export const stateLookup = {
   AL: "Alabama",
   AK: "Alaska", 
@@ -346,10 +339,10 @@ export const stateLookup = {
 } as const;
 
 export const filingStatuses = [
-  { value: "S", label: "Single" },
-  { value: "MJ", label: "Married Filing Jointly" },
-  { value: "MS", label: "Married Filing Separately" },
-  { value: "HH", label: "Head of Household" },
+  { value: "single", label: "Single" },
+  { value: "marriedJointly", label: "Married Filing Jointly" },
+  { value: "marriedSeparately", label: "Married Filing Separately" },
+  { value: "headOfHousehold", label: "Head of Household" },
 ] as const;
 
 export type FilingStatus = keyof typeof federalTaxBrackets;

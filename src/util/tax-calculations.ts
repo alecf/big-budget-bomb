@@ -47,16 +47,16 @@ const calculateStateTaxWithBrackets = (
 
   // Map filing status to state bracket system (some states may not have all filing statuses)
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  let brackets: any = stateBrackets.S; // Default fallback
+  let brackets: any = stateBrackets.single; // Default fallback
 
-  // For now, most states only have S and MJ brackets
-  // Use MJ for married filing jointly, otherwise default to S
+  // For now, most states only have single and marriedJointly brackets
+  // Use marriedJointly for married filing jointly, otherwise default to single
   if (
-    status === "MJ" &&
-    "MJ" in stateBrackets &&
-    stateBrackets.MJ
+    status === "marriedJointly" &&
+    "marriedJointly" in stateBrackets &&
+    stateBrackets.marriedJointly
   ) {
-    brackets = stateBrackets.MJ;
+    brackets = stateBrackets.marriedJointly;
   }
 
   let totalTax = 0;
@@ -79,7 +79,7 @@ const calculateStateTaxWithBrackets = (
 export const estimateStateTax = (
   income: number,
   state: StateName,
-  filingStatus: FilingStatus = "S",
+  filingStatus: FilingStatus = "single",
 ): StateTaxResult => {
   const stateInfo = statesTaxInfo[state];
   if (!stateInfo || !stateInfo.hasStateTax) {
@@ -154,7 +154,7 @@ export const generateSaltComparisonData = (
   stateTax: number,
   marginalTaxRate: number = SALT_CAP_CONSTANTS.DEFAULT_MARGINAL_TAX_RATE,
   agi: number = 0,
-  filingStatus: FilingStatus = "S",
+  filingStatus: FilingStatus = "single",
 ): SaltScenarioData[] => {
   // Calculate SALT deductions for each scenario
   const noCapDeduction = stateTax;
