@@ -13,7 +13,7 @@ export default function Home() {
             </span>
           </h1>
           <p className="text-xl md:text-2xl text-gray-300 max-w-3xl mx-auto mb-8">
-            Explore how this bill really affects you—and everyone else. 
+            Explore how this bill really affects you&mdash;and everyone else. 
             Discover the hidden wealth transfers from the poor to the rich, 
             and from the young to the old.
           </p>
@@ -73,7 +73,7 @@ export default function Home() {
         {/* Footer */}
         <div className="mt-16 text-center text-gray-400 text-sm">
           <p>
-            This site stores no data about you and doesn't track you in any way. 
+            This site stores no data about you and doesn&apos;t track you in any way. 
             Not even logs are retained.
           </p>
         </div>
