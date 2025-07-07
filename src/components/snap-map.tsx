@@ -133,7 +133,7 @@ export default function SnapMap() {
           .addTo(map.current);
 
         // Add popup with zip code info
-        const popup = new maplibregl.Popup({
+        new maplibregl.Popup({
           offset: 25,
           closeButton: false,
           closeOnClick: false,
