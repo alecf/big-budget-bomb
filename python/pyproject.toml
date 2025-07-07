@@ -3,23 +3,11 @@ requires = ["setuptools>=61.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "saltcap-data-processing"
+name = "bigbudgetbomb"
 version = "0.1.0"
-description = "Data processing for SNAP benefits and geospatial Tiger data"
+description = "Data processing tools for Big Budget Bomb website"
 readme = "README.md"
 requires-python = ">=3.11"
-authors = [
-    {name = "Salt Cap Calculator", email = "dev@saltcap.com"},
-]
-classifiers = [
-    "Development Status :: 3 - Alpha",
-    "Intended Audience :: Developers",
-    "License :: OSI Approved :: MIT License",
-    "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.11",
-    "Programming Language :: Python :: 3.12",
-    "Programming Language :: Python :: 3.13",
-]
 
 dependencies = [
     # Core data processing
@@ -70,9 +58,7 @@ dev = [
     "pytest-cov>=4.1.0",
 ]
 
-[project.urls]
-Homepage = "https://github.com/saltcap/saltcap-calculator"
-Repository = "https://github.com/saltcap/saltcap-calculator"
+
 
 [tool.setuptools.packages.find]
 where = ["src"]
@@ -84,7 +70,6 @@ where = ["src"]
 line-length = 88
 target-version = ['py311']
 include = '\.pyi?$'
-extend-ignore = ["E203", "W503"]
 
 [tool.isort]
 profile = "black"

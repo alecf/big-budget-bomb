@@ -1,6 +1,6 @@
-# Salt Cap Calculator - Data Processing
+# Big Budget Bomb - Data Processing
 
-This directory contains Python scripts and notebooks for processing geospatial Tiger data and SNAP benefits data.
+This directory contains Python scripts and notebooks for data processing to support the Big Budget Bomb website.
 
 ## Setup
 
@@ -50,15 +50,14 @@ jupyter lab
 
 ### Data Processing Workflow
 
-1. **Data Download**: Use notebooks to download Tiger shapefiles and SNAP benefits data
+1. **Data Download**: Download required datasets
 2. **Data Preprocessing**: Clean and standardize the data formats
-3. **Geospatial Analysis**: Process zip code boundaries and spatial relationships
+3. **Analysis**: Process and analyze data as needed
 4. **Data Export**: Generate processed datasets for the web application
 
 ## Data Sources
 
-- **Tiger Data**: US Census Bureau TIGER/Line Shapefiles for ZIP Code Tabulation Areas
-- **SNAP Benefits Data**: State and federal SNAP program data
+Data sources will be added as needed for the Big Budget Bomb website functionality.
 
 ## Dependencies
 

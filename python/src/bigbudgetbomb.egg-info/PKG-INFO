@@ -1,17 +1,7 @@
 Metadata-Version: 2.4
-Name: saltcap-data-processing
+Name: bigbudgetbomb
 Version: 0.1.0
-Summary: Data processing for SNAP benefits and geospatial Tiger data
-Author-email: Salt Cap Calculator <dev@saltcap.com>
-Project-URL: Homepage, https://github.com/saltcap/saltcap-calculator
-Project-URL: Repository, https://github.com/saltcap/saltcap-calculator
-Classifier: Development Status :: 3 - Alpha
-Classifier: Intended Audience :: Developers
-Classifier: License :: OSI Approved :: MIT License
-Classifier: Programming Language :: Python :: 3
-Classifier: Programming Language :: Python :: 3.11
-Classifier: Programming Language :: Python :: 3.12
-Classifier: Programming Language :: Python :: 3.13
+Summary: Data processing tools for Big Budget Bomb website
 Requires-Python: >=3.11
 Description-Content-Type: text/markdown
 Requires-Dist: pandas>=2.0.0
@@ -43,9 +33,9 @@ Requires-Dist: mypy>=1.5.0; extra == "dev"
 Requires-Dist: pytest>=7.4.0; extra == "dev"
 Requires-Dist: pytest-cov>=4.1.0; extra == "dev"
 
-# Salt Cap Calculator - Data Processing
+# Big Budget Bomb - Data Processing
 
-This directory contains Python scripts and notebooks for processing geospatial Tiger data and SNAP benefits data.
+This directory contains Python scripts and notebooks for data processing to support the Big Budget Bomb website.
 
 ## Setup
 
@@ -95,15 +85,14 @@ jupyter lab
 
 ### Data Processing Workflow
 
-1. **Data Download**: Use notebooks to download Tiger shapefiles and SNAP benefits data
+1. **Data Download**: Download required datasets
 2. **Data Preprocessing**: Clean and standardize the data formats
-3. **Geospatial Analysis**: Process zip code boundaries and spatial relationships
+3. **Analysis**: Process and analyze data as needed
 4. **Data Export**: Generate processed datasets for the web application
 
 ## Data Sources
 
-- **Tiger Data**: US Census Bureau TIGER/Line Shapefiles for ZIP Code Tabulation Areas
-- **SNAP Benefits Data**: State and federal SNAP program data
+Data sources will be added as needed for the Big Budget Bomb website functionality.
 
 ## Dependencies
 
