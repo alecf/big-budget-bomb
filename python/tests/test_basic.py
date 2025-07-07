@@ -14,7 +14,7 @@ def test_python_version():
 
     version = sys.version_info
     assert version.major == 3
-    assert version.minor >= 11
+    assert version.minor >= 13
 
 
 def test_imports():
