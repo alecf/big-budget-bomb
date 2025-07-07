@@ -1,6 +1,6 @@
 """Big Budget Bomb Data Processing Tools.
 
-This package provides data processing utilities for the Big Budget Bomb website.
+This package provides data processing utilities for Big Budget Bomb website.
 """
 
 __version__ = "0.1.0"
