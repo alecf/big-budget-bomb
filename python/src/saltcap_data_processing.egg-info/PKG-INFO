@@ -1,0 +1,132 @@
+Metadata-Version: 2.4
+Name: saltcap-data-processing
+Version: 0.1.0
+Summary: Data processing for SNAP benefits and geospatial Tiger data
+Author-email: Salt Cap Calculator <dev@saltcap.com>
+Project-URL: Homepage, https://github.com/saltcap/saltcap-calculator
+Project-URL: Repository, https://github.com/saltcap/saltcap-calculator
+Classifier: Development Status :: 3 - Alpha
+Classifier: Intended Audience :: Developers
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.11
+Classifier: Programming Language :: Python :: 3.12
+Classifier: Programming Language :: Python :: 3.13
+Requires-Python: >=3.11
+Description-Content-Type: text/markdown
+Requires-Dist: pandas>=2.0.0
+Requires-Dist: numpy>=1.24.0
+Requires-Dist: geopandas>=0.14.0
+Requires-Dist: shapely>=2.0.0
+Requires-Dist: fiona>=1.9.0
+Requires-Dist: pyproj>=3.6.0
+Requires-Dist: rasterio>=1.3.0
+Requires-Dist: folium>=0.14.0
+Requires-Dist: requests>=2.31.0
+Requires-Dist: httpx>=0.25.0
+Requires-Dist: openpyxl>=3.1.0
+Requires-Dist: xlsxwriter>=3.1.0
+Requires-Dist: jupyter>=1.0.0
+Requires-Dist: jupyterlab>=4.0.0
+Requires-Dist: ipywidgets>=8.0.0
+Requires-Dist: matplotlib>=3.7.0
+Requires-Dist: seaborn>=0.12.0
+Requires-Dist: plotly>=5.17.0
+Requires-Dist: tqdm>=4.66.0
+Requires-Dist: python-dotenv>=1.0.0
+Requires-Dist: pydantic>=2.0.0
+Provides-Extra: dev
+Requires-Dist: black>=23.0.0; extra == "dev"
+Requires-Dist: isort>=5.12.0; extra == "dev"
+Requires-Dist: flake8>=6.0.0; extra == "dev"
+Requires-Dist: mypy>=1.5.0; extra == "dev"
+Requires-Dist: pytest>=7.4.0; extra == "dev"
+Requires-Dist: pytest-cov>=4.1.0; extra == "dev"
+
+# Salt Cap Calculator - Data Processing
+
+This directory contains Python scripts and notebooks for processing geospatial Tiger data and SNAP benefits data.
+
+## Setup
+
+### Requirements
+- Python 3.11 or higher
+- Virtual environment (venv)
+
+### Installation
+
+1. **Activate the virtual environment:**
+   ```bash
+   source venv/bin/activate  # On Linux/Mac
+   # or
+   venv\Scripts\activate     # On Windows
+   ```
+
+2. **Install dependencies:**
+   ```bash
+   pip install -e .
+   ```
+
+   Or for development with additional tools:
+   ```bash
+   pip install -e ".[dev]"
+   ```
+
+### Project Structure
+
+```
+python/
+├── notebooks/          # Jupyter notebooks for data exploration and processing
+├── src/               # Source code modules
+├── data/              # Raw and processed data files
+├── tests/             # Unit tests
+├── venv/              # Virtual environment
+├── pyproject.toml     # Project configuration and dependencies
+└── README.md          # This file
+```
+
+## Usage
+
+### Starting Jupyter Lab
+```bash
+source venv/bin/activate
+jupyter lab
+```
+
+### Data Processing Workflow
+
+1. **Data Download**: Use notebooks to download Tiger shapefiles and SNAP benefits data
+2. **Data Preprocessing**: Clean and standardize the data formats
+3. **Geospatial Analysis**: Process zip code boundaries and spatial relationships
+4. **Data Export**: Generate processed datasets for the web application
+
+## Data Sources
+
+- **Tiger Data**: US Census Bureau TIGER/Line Shapefiles for ZIP Code Tabulation Areas
+- **SNAP Benefits Data**: State and federal SNAP program data
+
+## Dependencies
+
+### Core Libraries
+- **pandas**: Data manipulation and analysis
+- **geopandas**: Geospatial data processing
+- **shapely**: Geometric operations
+- **numpy**: Numerical computing
+
+### Geospatial Stack
+- **fiona**: File I/O for geospatial data
+- **pyproj**: Coordinate system transformations
+- **rasterio**: Raster data processing
+- **folium**: Interactive maps
+
+### Visualization
+- **matplotlib**: Static plotting
+- **seaborn**: Statistical visualization
+- **plotly**: Interactive charts
+
+### Development Tools
+- **black**: Code formatting
+- **isort**: Import sorting
+- **flake8**: Linting
+- **mypy**: Type checking
+- **pytest**: Testing framework
