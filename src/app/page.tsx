@@ -24,16 +24,30 @@ export default function Home() {
             >
               Try the SALT Calculator
             </Link>
+            <Link 
+              href="/snap" 
+              className="bg-gradient-to-r from-green-600 to-teal-600 hover:from-green-700 hover:to-teal-700 text-white font-semibold py-3 px-8 rounded-full transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
+            >
+              SNAP Impact Map
+            </Link>
           </div>
         </div>
 
         {/* Features Grid */}
-        <div className="grid md:grid-cols-3 gap-8 mb-16">
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 mb-16">
           <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20">
             <div className="text-4xl mb-4">🧮</div>
             <h3 className="text-xl font-semibold text-white mb-3">SALT Calculator</h3>
             <p className="text-gray-300">
               See exactly who benefits from the higher SALT deduction cap and how much it costs everyone else.
+            </p>
+          </div>
+          
+          <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20">
+            <div className="text-4xl mb-4">🗺️</div>
+            <h3 className="text-xl font-semibold text-white mb-3">SNAP Impact Map</h3>
+            <p className="text-gray-300">
+              Visualize how tax policy changes affect SNAP recipients in your ZIP code and surrounding areas.
             </p>
           </div>
           
