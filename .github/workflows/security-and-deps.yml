@@ -1,0 +1,95 @@
+name: Security and Dependencies
+
+on:
+  schedule:
+    # Run daily at 2 AM UTC
+    - cron: '0 2 * * *'
+  pull_request:
+    branches: ["main"]
+    paths:
+      - 'package.json'
+      - 'package-lock.json'
+      - 'python/pyproject.toml'
+      - '.github/workflows/security-and-deps.yml'
+  push:
+    branches: ["main"]
+    paths:
+      - 'package.json'
+      - 'package-lock.json'
+      - 'python/pyproject.toml'
+      - '.github/workflows/security-and-deps.yml'
+
+jobs:
+  nodejs-security:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: 18
+        cache: 'npm'
+    
+    - name: Install dependencies
+      run: npm ci
+    
+    - name: Run npm audit
+      run: npm audit --audit-level=moderate
+    
+    - name: Check for outdated packages
+      run: npm outdated || true
+    
+    - name: Run security scan with npm audit
+      run: npm audit --audit-level=high --production
+
+  python-security:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Setup Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.11"
+        cache: 'pip'
+    
+    - name: Install Python dependencies
+      run: |
+        python -m pip install --upgrade pip
+        cd python
+        pip install -e .[dev]
+        pip install safety bandit
+    
+    - name: Run safety check for known vulnerabilities
+      run: |
+        cd python
+        safety check --json || true
+    
+    - name: Run bandit security linter
+      run: |
+        cd python
+        bandit -r src/ -f json || true
+    
+    - name: Check for outdated Python packages
+      run: |
+        cd python
+        pip list --outdated || true
+
+  dependency-review:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Dependency Review
+      uses: actions/dependency-review-action@v4
+      with:
+        fail-on-severity: moderate
+        allow-dependencies-licenses: MIT, Apache-2.0, BSD-2-Clause, BSD-3-Clause, ISC
