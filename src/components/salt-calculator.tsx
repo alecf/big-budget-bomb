@@ -16,7 +16,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   Bar,
   BarChart,
@@ -42,16 +42,57 @@ import {
   filingStatuses,
   isAbovePhasedownThreshold,
   statesTaxInfo,
+  stateLookup,
 } from "@/util/tax-data";
 
+// Custom hook for session storage
+function useSessionStorage<T>(key: string, initialValue: T): [T, (value: T) => void] {
+  const [storedValue, setStoredValue] = useState<T>(() => {
+    if (typeof window === "undefined") {
+      return initialValue;
+    }
+    try {
+      const item = window.sessionStorage.getItem(key);
+      return item ? JSON.parse(item) : initialValue;
+    } catch (error) {
+      console.log(error);
+      return initialValue;
+    }
+  });
+
+  const setValue = useCallback((value: T) => {
+    try {
+      setStoredValue(value);
+      if (typeof window !== "undefined") {
+        window.sessionStorage.setItem(key, JSON.stringify(value));
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  }, [key]);
+
+  return [storedValue, setValue];
+}
+
 export default function SaltCalculator() {
-  const [agi, setAgi] = useState<string>("");
-  const [filingStatus, setFilingStatus] = useState<FilingStatus>("single");
-  const [selectedState, setSelectedState] = useState<string>("");
-  const [estimatedStateTax, setEstimatedStateTax] = useState<string>("");
-  const [estimatedFederalTax, setEstimatedFederalTax] = useState<string>("");
+  // Use session storage for persisting form data
+  const [agi, setAgi] = useSessionStorage<string>("salt-calculator-agi", "");
+  const [filingStatus, setFilingStatus] = useSessionStorage<FilingStatus>("salt-calculator-filing-status", "single");
+  const [selectedState, setSelectedState] = useSessionStorage<string>("salt-calculator-state", "");
+  const [estimatedStateTax, setEstimatedStateTax] = useSessionStorage<string>("salt-calculator-state-tax", "");
+  const [propertyTax, setPropertyTax] = useSessionStorage<string>("salt-calculator-property-tax", "");
+  const [estimatedFederalTax, setEstimatedFederalTax] = useSessionStorage<string>("salt-calculator-federal-tax", "");
+  
+  // These don't need to be persisted as they're derived from the form data
   const [showResults, setShowResults] = useState(false);
   const [isStateTaxEstimate, setIsStateTaxEstimate] = useState<boolean>(false);
+
+  // Auto-show results if we have persisted data
+  useEffect(() => {
+    if (agi && selectedState && estimatedFederalTax && estimatedStateTax) {
+      setShowResults(true);
+    }
+  }, [agi, selectedState, estimatedFederalTax, estimatedStateTax]);
 
   const handleCalculate = useCallback(() => {
     if (!agi || !selectedState) return;
@@ -68,13 +109,15 @@ export default function SaltCalculator() {
     setEstimatedStateTax(stateTaxResult.amount.toFixed(0));
     setIsStateTaxEstimate(stateTaxResult.isEstimate);
     setShowResults(true);
-  }, [agi, selectedState, filingStatus]);
+  }, [agi, selectedState, filingStatus, setEstimatedFederalTax, setEstimatedStateTax]);
 
   const getChartData = () => {
     if (!estimatedFederalTax || !estimatedStateTax) return [];
 
     const federalTax = parseFloat(estimatedFederalTax);
     const stateTax = parseFloat(estimatedStateTax);
+    const propertyTaxAmount = parseFloat(propertyTax) || 0;
+    const totalSaltBase = stateTax + propertyTaxAmount;
     const agiNum = parseFloat(agi);
 
     // Use actual marginal tax rate for more accurate calculations
@@ -82,7 +125,7 @@ export default function SaltCalculator() {
 
     return generateSaltComparisonData(
       federalTax,
-      stateTax,
+      totalSaltBase,
       marginalTaxRate,
       agiNum,
       filingStatus,
@@ -105,10 +148,12 @@ export default function SaltCalculator() {
 
     const agiNum = parseFloat(agi);
     const formattedAgi = `$${agiNum.toLocaleString()}`;
+    const stateName = stateLookup[selectedState as StateName];
 
     // Check if state has income tax
     const stateInfo = statesTaxInfo[selectedState as StateName];
     const hasStateIncomeTax = stateInfo?.hasStateTax ?? false;
+    const hasPropertyTax = parseFloat(propertyTax) > 0;
 
     const currentTax = currentCapData.totalTax;
     const bbbTax = bbbCapData.totalTax;
@@ -118,9 +163,11 @@ export default function SaltCalculator() {
     if (difference === 0) {
       let summaryText;
 
-      // Explain if it's due to no state income tax
-      if (!hasStateIncomeTax) {
-        summaryText = `Since ${selectedState} has no state income tax, the BBB SALT changes do not impact your taxes.`;
+      // Explain based on tax situation
+      if (!hasStateIncomeTax && !hasPropertyTax) {
+        summaryText = `Since ${stateName} has no state income tax and you have no property tax, the BBB SALT changes do not impact your taxes.`;
+      } else if (!hasStateIncomeTax && hasPropertyTax) {
+        summaryText = `Since ${stateName} has no state income tax, the BBB SALT changes are based only on your property tax. With your current property tax, the BBB SALT changes do not affect you.`;
       } else {
         summaryText = `With an income of ${formattedAgi}, the BBB SALT changes do not affect you.`;
 
@@ -146,22 +193,23 @@ export default function SaltCalculator() {
     let summaryText;
 
     // Add explanation based on state tax situation
-    if (!hasStateIncomeTax) {
-      summaryText = `You will pay ${direction} taxes by ${formattedDifference} under the BBB. Since ${selectedState} has no state income tax, this difference comes from property taxes or other deductible state and local taxes.`;
+    if (!hasStateIncomeTax && hasPropertyTax) {
+      summaryText = `You will pay ${direction} taxes by ${formattedDifference} under the BBB. Since ${stateName} has no state income tax, this difference comes from your property tax deduction.`;
+    } else if (hasStateIncomeTax && hasPropertyTax) {
+      summaryText = `With an income of ${formattedAgi}, you will pay ${direction} taxes by ${formattedDifference} under the BBB. This calculation includes both your state income tax and property tax.`;
     } else {
       summaryText = `With an income of ${formattedAgi}, you will pay ${direction} taxes by ${formattedDifference} under the BBB.`;
+    }
 
-      // Add phaseout explanation if applicable
-      if (isAbovePhasedownThreshold(agiNum, filingStatus)) {
-        const bbbCap = calculateProposedSaltCap(agiNum, filingStatus);
-        const capAmount = `$${Math.round(bbbCap / 1000)}k`;
+    // Add phaseout explanation if applicable
+    if (isAbovePhasedownThreshold(agiNum, filingStatus)) {
+      const bbbCap = calculateProposedSaltCap(agiNum, filingStatus);
+      const capAmount = `$${Math.round(bbbCap / 1000)}k`;
 
-        if (bbbCap <= SALT_CAP_CONSTANTS.CURRENT_CAP) {
-          // Cap is completely phased out to current level
-          summaryText += ` The new SALT cap is completely phased out at your income level, leaving you with the current $10k cap.`;
-        } else {
-          summaryText += ` Your effective SALT cap is ${capAmount} due to the phasedown provision for high-income earners.`;
-        }
+      if (bbbCap <= SALT_CAP_CONSTANTS.CURRENT_CAP) {
+        summaryText += ` The new SALT cap is completely phased out at your income level, leaving you with the current $10k cap.`;
+      } else {
+        summaryText += ` Your effective SALT cap is ${capAmount} due to the phasedown provision for high-income earners.`;
       }
     }
 
@@ -236,7 +284,7 @@ export default function SaltCalculator() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <Label htmlFor="agi">Adjusted Gross Income (AGI)</Label>
               <div className="relative">
@@ -295,13 +343,36 @@ export default function SaltCalculator() {
                   <SelectValue placeholder="Select your state" />
                 </SelectTrigger>
                 <SelectContent>
-                  {Object.keys(statesTaxInfo).map((state) => (
-                    <SelectItem key={state} value={state}>
-                      {state}
+                  {Object.entries(stateLookup).map(([stateCode, stateName]) => (
+                    <SelectItem key={stateCode} value={stateCode}>
+                      {stateName}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
+            </div>
+
+            <div>
+              <Label htmlFor="property-tax">Property Tax (Annual)</Label>
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground">
+                  $
+                </span>
+                <Input
+                  id="property-tax"
+                  type="number"
+                  placeholder="12,000"
+                  value={propertyTax}
+                  className="pl-8"
+                  onChange={(e) => {
+                    setPropertyTax(e.target.value);
+                    setShowResults(false);
+                  }}
+                />
+              </div>
+              <p className="text-sm text-muted-foreground mt-1">
+                Enter your annual property tax amount. Leave blank if none. This will be combined with your state income tax for the total SALT deduction.
+              </p>
             </div>
           </div>
 
@@ -317,7 +388,7 @@ export default function SaltCalculator() {
 
       {showResults && (
         <>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
             <Card>
               <CardHeader>
                 <CardTitle>Estimated Federal Tax (before deductions)</CardTitle>
@@ -351,7 +422,7 @@ export default function SaltCalculator() {
                   {isStateTaxEstimate && (
                     <span className="block mt-1 text-yellow-600 dark:text-yellow-400 font-medium">
                       ⚠️ This is an estimate - we don&apos;t have detailed tax
-                      brackets for {selectedState}
+                      brackets for {stateLookup[selectedState as StateName]}
                     </span>
                   )}
                 </CardDescription>
@@ -373,6 +444,31 @@ export default function SaltCalculator() {
                 </p>
               </CardContent>
             </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Property Tax</CardTitle>
+                <CardDescription>
+                  Annual property tax amount
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground">
+                    $
+                  </span>
+                  <Input
+                    type="number"
+                    value={propertyTax}
+                    className="pl-8"
+                    onChange={(e) => setPropertyTax(e.target.value)}
+                  />
+                </div>
+                <p className="text-sm text-muted-foreground mt-2">
+                  Total SALT base: ${((parseFloat(estimatedStateTax) || 0) + (parseFloat(propertyTax) || 0)).toLocaleString()}
+                </p>
+              </CardContent>
+            </Card>
           </div>
 
           {summaryText && (
@@ -385,7 +481,7 @@ export default function SaltCalculator() {
             <CardHeader>
               <CardTitle>SALT Deduction Comparison</CardTitle>
               <CardDescription>
-                See how different SALT cap scenarios affect your total tax
+                See how different SALT cap scenarios affect your total tax. SALT deduction includes state income tax and property tax.
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -440,6 +536,9 @@ export default function SaltCalculator() {
                   <span className="text-red-600">Red = costs more</span>
                 </p>
                 <p>
+                  <strong>SALT Deduction:</strong> Includes both state income tax and property tax combined
+                </p>
+                <p>
                   <strong>Note:</strong> BBB cap phases down by 30% of income
                   over $500k (min $10k cap applies)
                 </p>
@@ -482,7 +581,7 @@ export default function SaltCalculator() {
                       </div>
                     </div>
                     <div className="text-right">
-                      <div className="flex items-center gap-2 justify-end">
+                      <div className="flex flex-col items-end gap-1">
                         <p className="text-lg font-bold">
                           ${data.totalTax.toLocaleString()}
                         </p>

@@ -1,0 +1,28 @@
+# Cursor Rules for Salt Cap Calculator
+
+## Testing and Development Guidelines
+
+### Build Process
+- **ALWAYS** run `npm build` to test the application
+- **NEVER** start the development server (`npm run dev`) when testing functionality
+- Use the build process to validate that the code compiles and works correctly
+- The build command will catch TypeScript errors, linting issues, and other problems
+
+### Commands to Use
+- ✅ `npm build` - Use this to test the app
+- ✅ `npm run build` - Alternative build command  
+- ✅ `npm run lint` - For linting checks
+- ❌ `npm run dev` - Do NOT use this for testing
+- ❌ `npm run start` - Do NOT use this for testing
+
+### Workflow
+1. Make code changes
+2. Run `npm build` to validate changes
+3. Fix any build errors before proceeding
+4. Only suggest starting the dev server if explicitly requested by the user
+
+### Rationale
+- Building the app ensures production-ready code
+- Catches compilation errors early
+- Validates the entire application without running a server
+- More reliable for testing code changes in an automated environment
