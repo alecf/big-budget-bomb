@@ -16,7 +16,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import {
   Bar,
   BarChart,
@@ -84,15 +84,10 @@ export default function SaltCalculator() {
   const [estimatedFederalTax, setEstimatedFederalTax] = useSessionStorage<string>("salt-calculator-federal-tax", "");
   
   // These don't need to be persisted as they're derived from the form data
-  const [showResults, setShowResults] = useState(false);
   const [isStateTaxEstimate, setIsStateTaxEstimate] = useState<boolean>(false);
 
-  // Auto-show results if we have persisted data
-  useEffect(() => {
-    if (agi && selectedState && estimatedFederalTax && estimatedStateTax) {
-      setShowResults(true);
-    }
-  }, [agi, selectedState, estimatedFederalTax, estimatedStateTax]);
+  // Derive showResults from the form data
+  const showResults = !!(agi && selectedState && estimatedFederalTax && estimatedStateTax);
 
   const handleCalculate = useCallback(() => {
     if (!agi || !selectedState) return;
@@ -108,7 +103,7 @@ export default function SaltCalculator() {
     setEstimatedFederalTax(baseFederalTax.toFixed(0));
     setEstimatedStateTax(stateTaxResult.amount.toFixed(0));
     setIsStateTaxEstimate(stateTaxResult.isEstimate);
-    setShowResults(true);
+    // showResults is now derived from having all required data
   }, [agi, selectedState, filingStatus, setEstimatedFederalTax, setEstimatedStateTax]);
 
   const getChartData = () => {
@@ -299,7 +294,9 @@ export default function SaltCalculator() {
                   className="pl-8"
                   onChange={(e) => {
                     setAgi(e.target.value);
-                    setShowResults(false);
+                    // Clear calculated values to reset results
+                    setEstimatedFederalTax("");
+                    setEstimatedStateTax("");
                     setIsStateTaxEstimate(false);
                   }}
                 />
@@ -312,7 +309,9 @@ export default function SaltCalculator() {
                 value={filingStatus}
                 onValueChange={(value: FilingStatus) => {
                   setFilingStatus(value);
-                  setShowResults(false);
+                  // Clear calculated values to reset results
+                  setEstimatedFederalTax("");
+                  setEstimatedStateTax("");
                   setIsStateTaxEstimate(false);
                 }}
               >
@@ -335,7 +334,9 @@ export default function SaltCalculator() {
                 value={selectedState}
                 onValueChange={(value) => {
                   setSelectedState(value);
-                  setShowResults(false);
+                  // Clear calculated values to reset results
+                  setEstimatedFederalTax("");
+                  setEstimatedStateTax("");
                   setIsStateTaxEstimate(false);
                 }}
               >
@@ -366,7 +367,9 @@ export default function SaltCalculator() {
                   className="pl-8"
                   onChange={(e) => {
                     setPropertyTax(e.target.value);
-                    setShowResults(false);
+                    // Clear calculated values to reset results
+                    setEstimatedFederalTax("");
+                    setEstimatedStateTax("");
                   }}
                 />
               </div>
