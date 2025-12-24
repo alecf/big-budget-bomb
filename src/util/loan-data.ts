@@ -29,50 +29,71 @@ export const studentTypes = [
 ] as const;
 
 // Program presets for quick selection
+// Base annual costs reflect public in-state tuition (2025 data)
+// School type multiplier adjusts for out-of-state and private schools
 export const programPresets = [
   {
     id: "masters",
     label: "Master's Degree",
     studentType: "graduate" as const,
     years: 2,
-    annualCost: 40000,
+    annualCost: 22000, // Public in-state avg ~$22k/yr
   },
   {
     id: "phd",
     label: "PhD Program",
     studentType: "graduate" as const,
     years: 5,
-    annualCost: 35000,
+    annualCost: 0, // Most PhDs are fully funded
+    isFunded: true,
+    fundedNote: "Most PhD programs are fully funded with tuition waiver + stipend",
+  },
+  {
+    id: "phd-unfunded",
+    label: "PhD (Unfunded)",
+    studentType: "graduate" as const,
+    years: 5,
+    annualCost: 30000, // For rare unfunded programs
   },
   {
     id: "law",
     label: "Law School (JD)",
     studentType: "professional" as const,
     years: 3,
-    annualCost: 60000,
+    annualCost: 31000, // Public in-state avg ~$31k/yr
   },
   {
     id: "medical",
     label: "Medical School (MD/DO)",
     studentType: "professional" as const,
     years: 4,
-    annualCost: 75000,
+    annualCost: 42000, // Public in-state avg ~$42k/yr
   },
   {
     id: "dental",
     label: "Dental School (DDS/DMD)",
     studentType: "professional" as const,
     years: 4,
-    annualCost: 70000,
+    annualCost: 42000, // Public in-state avg ~$42k/yr
   },
   {
     id: "pharmacy",
     label: "Pharmacy School (PharmD)",
     studentType: "professional" as const,
     years: 4,
-    annualCost: 45000,
+    annualCost: 30000, // Public in-state avg ~$30k/yr
   },
 ] as const;
+
+// School type options with cost multipliers
+// Base costs are set for public in-state; multipliers adjust for other types
+export const schoolTypes = [
+  { value: "public-in-state", label: "Public (In-State)", multiplier: 1.0 },
+  { value: "public-out-of-state", label: "Public (Out-of-State)", multiplier: 1.5 },
+  { value: "private", label: "Private", multiplier: 1.8 },
+] as const;
+
+export type SchoolType = (typeof schoolTypes)[number]["value"];
 
 // Enrollment status options
 export const enrollmentStatuses = [

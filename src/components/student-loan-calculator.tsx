@@ -37,20 +37,30 @@ import {
 import {
   type CalculationResult,
   LOAN_CAP_CONSTANTS,
+  type SchoolType,
   type StudentType,
   enrollmentStatuses,
   programPresets,
+  schoolTypes,
   studentTypes,
 } from "@/util/loan-data";
 
+// Helper to get the multiplier for a school type
+const getSchoolTypeMultiplier = (type: SchoolType): number => {
+  return schoolTypes.find((s) => s.value === type)?.multiplier ?? 1.0;
+};
+
 export default function StudentLoanCalculator() {
   const [studentType, setStudentType] = useState<StudentType>("graduate");
+  const [schoolType, setSchoolType] = useState<SchoolType>("public-in-state");
   const [programLength, setProgramLength] = useState<string>("2");
   const [annualCost, setAnnualCost] = useState<string>("");
   const [existingLoans, setExistingLoans] = useState<string>("0");
   const [enrollmentPercentage, setEnrollmentPercentage] = useState<number>(100);
   const [showResults, setShowResults] = useState(false);
   const [results, setResults] = useState<CalculationResult | null>(null);
+  const [isFundedProgram, setIsFundedProgram] = useState(false);
+  const [selectedPreset, setSelectedPreset] = useState<string | null>(null);
 
   const handleCalculate = useCallback(() => {
     const cost = parseFloat(annualCost) || 0;
@@ -80,16 +90,41 @@ export default function StudentLoanCalculator() {
   const handlePresetSelect = (presetId: string) => {
     const preset = programPresets.find((p) => p.id === presetId);
     if (preset) {
+      setSelectedPreset(presetId);
       setStudentType(preset.studentType);
       setProgramLength(preset.years.toString());
-      setAnnualCost(preset.annualCost.toString());
+      // Apply school type multiplier to base cost
+      const multiplier = getSchoolTypeMultiplier(schoolType);
+      const adjustedCost = Math.round(preset.annualCost * multiplier);
+      setAnnualCost(adjustedCost.toString());
+      // Check if this is a funded program (like PhD)
+      setIsFundedProgram("isFunded" in preset && preset.isFunded === true);
       setShowResults(false);
     }
+  };
+
+  // Update cost when school type changes (if a preset was selected)
+  // Keep the preset selected since we're recalculating from its base cost
+  const handleSchoolTypeChange = (newSchoolType: SchoolType) => {
+    setSchoolType(newSchoolType);
+    // If there's an annual cost set, adjust it based on the ratio of multipliers
+    if (annualCost && parseFloat(annualCost) > 0) {
+      const oldMultiplier = getSchoolTypeMultiplier(schoolType);
+      const newMultiplier = getSchoolTypeMultiplier(newSchoolType);
+      const baseCost = parseFloat(annualCost) / oldMultiplier;
+      const newCost = Math.round(baseCost * newMultiplier);
+      setAnnualCost(newCost.toString());
+    }
+    // Clear results but keep preset selected
+    setShowResults(false);
+    setResults(null);
   };
 
   const resetForm = () => {
     setShowResults(false);
     setResults(null);
+    setSelectedPreset(null);
+    setIsFundedProgram(false);
   };
 
   // Generate summary text based on results
@@ -148,6 +183,26 @@ export default function StudentLoanCalculator() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
+          {/* School Type Selection */}
+          <div>
+            <Label className="mb-2 block">School Type</Label>
+            <div className="flex flex-wrap gap-2">
+              {schoolTypes.map((type) => (
+                <Button
+                  key={type.value}
+                  variant={schoolType === type.value ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => handleSchoolTypeChange(type.value)}
+                >
+                  {type.label}
+                </Button>
+              ))}
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">
+              Costs vary significantly by school type. Select yours to get accurate estimates.
+            </p>
+          </div>
+
           {/* Quick Presets */}
           <div>
             <Label className="mb-2 block">Quick Start: Select a Program Type</Label>
@@ -155,7 +210,7 @@ export default function StudentLoanCalculator() {
               {programPresets.map((preset) => (
                 <Button
                   key={preset.id}
-                  variant="outline"
+                  variant={selectedPreset === preset.id ? "default" : "outline"}
                   size="sm"
                   onClick={() => handlePresetSelect(preset.id)}
                 >
@@ -164,6 +219,19 @@ export default function StudentLoanCalculator() {
               ))}
             </div>
           </div>
+
+          {/* Funded Program Notice */}
+          {isFundedProgram && (
+            <div className="p-3 bg-green-50 dark:bg-green-950 border border-green-200 dark:border-green-800 rounded-lg">
+              <p className="text-sm text-green-800 dark:text-green-200 font-medium">
+                💡 Most PhD programs are fully funded with tuition waiver + stipend ($33k-$50k/year).
+              </p>
+              <p className="text-xs text-green-700 dark:text-green-300 mt-1">
+                If you&apos;re accepted to an unfunded PhD program, consider reapplying to funded programs.
+                Select &quot;PhD (Unfunded)&quot; above if you still want to calculate unfunded costs.
+              </p>
+            </div>
+          )}
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
@@ -257,7 +325,8 @@ export default function StudentLoanCalculator() {
                 />
               </div>
               <p className="text-xs text-muted-foreground mt-1">
-                Include tuition, fees, and living expenses
+                Adjusted for {schoolTypes.find(s => s.value === schoolType)?.label ?? "your school type"}.
+                Edit to match your specific program.
               </p>
             </div>
 
