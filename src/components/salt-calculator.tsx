@@ -410,9 +410,10 @@ export default function SaltCalculator() {
 
                         if (
                           scenario === "Current ($10k Cap)" ||
-                          !currentValue
+                          !currentValue ||
+                          value === undefined
                         ) {
-                          return [`$${value.toLocaleString()}`, displayName];
+                          return [`$${Number(value ?? 0).toLocaleString()}`, displayName];
                         }
 
                         const difference = Number(value) - Number(currentValue);
@@ -422,7 +423,7 @@ export default function SaltCalculator() {
                         ).toLocaleString()})`;
 
                         return [
-                          `$${value.toLocaleString()}${relativeText}`,
+                          `$${Number(value).toLocaleString()}${relativeText}`,
                           displayName,
                         ];
                       }}
