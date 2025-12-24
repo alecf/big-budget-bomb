@@ -1,28 +1,29 @@
-# SALT Cap Calculator
+# Big Beautiful Bill Explorer
 
-A web application that helps taxpayers understand how proposed changes to the State And Local Tax (SALT) deduction cap would affect their federal tax liability.
+Interactive tools to understand how the Big Beautiful Bill (Public Law 119-21) affects everyday Americans and businesses.
 
-## What is the SALT Cap?
+## What is the Big Beautiful Bill?
 
-The State And Local Tax (SALT) deduction allows taxpayers to deduct state and local taxes from their federal taxable income. Currently, this deduction is capped at $10,000 per year. Various legislative proposals, including provisions in the Build Back Better Act (BBB), have suggested modifying this cap.
+The Big Beautiful Bill is a budget reconciliation bill passed by the 119th Congress and signed into law on July 4, 2025. It covers major policy areas including:
 
-## What This Calculator Does
+- **Tax Policy**: Extension of tax cuts, no tax on tips/overtime, SALT deduction changes, business tax reforms
+- **Healthcare**: Medicaid work requirements, Medicare changes, health savings account expansions
+- **Immigration**: New fees, enforcement funding, border security
+- **Energy**: Oil/gas leasing expansion, termination of clean energy credits
+- **Education**: Student loan reforms, Pell Grant changes
+- **Defense**: Military spending, shipbuilding, nuclear forces
+- **Environment**: Rescission of climate programs
 
-This calculator compares your tax liability under:
+## Tools
 
-- The current $10,000 SALT cap
-- Proposed changes from the Build Back Better Act, which would:
-  - Raise the cap to $80,000 for tax years 2021-2030
-  - Phase down the higher cap for high-income earners
-  - Return to the $10,000 cap after 2030
+### SALT Deduction Calculator
 
-## Features
+Compare your tax liability under the current $10,000 SALT cap vs the new $40,000 cap with high-income phasedown:
 
-- **State-specific calculations**: Supports all 50 states with accurate tax rate data
-- **Multiple filing statuses**: Single, Married Filing Jointly, Married Filing Separately, Head of Household
-- **Interactive visualizations**: Charts showing tax comparisons across different scenarios
-- **Detailed breakdowns**: See federal tax, state tax, and total tax liability
-- **Phasedown modeling**: Accurate calculations for high-income earners subject to cap phasedowns
+- Supports all 50 states with accurate tax rate data
+- Multiple filing statuses
+- Interactive visualizations
+- Phasedown modeling for high-income earners (30% reduction for income over $500k)
 
 ## Getting Started
 
@@ -33,95 +34,65 @@ This calculator compares your tax liability under:
 
 ### Installation
 
-1. Clone the repository:
-
 ```bash
-git clone https://github.com/your-username/salt-cap-calculator.git
-cd salt-cap-calculator
-```
-
-2. Install dependencies:
-
-```bash
+git clone https://github.com/your-username/big-budget-bomb.git
+cd big-budget-bomb
 npm install
-# or
-yarn install
-# or
-pnpm install
 ```
 
-3. Run the development server:
+### Development
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-4. Open [http://localhost:3000](http://localhost:3000) with your browser to see the application.
+Open [http://localhost:3000](http://localhost:3000) to see the application.
 
 ### Building for Production
 
 ```bash
 npm run build
-npm start
 ```
 
-## How to Use
-
-1. **Enter your information**:
-
-   - Adjusted Gross Income (AGI)
-   - Filing status
-   - State of residence
-
-2. **Click "Calculate"** to see:
-
-   - Your estimated tax liability under current law
-   - Your estimated tax liability under proposed BBB changes
-   - Visual comparison charts
-   - Detailed breakdown of the differences
-
-3. **Review the results**:
-   - Green indicates tax savings
-   - Red indicates tax increases
-   - Charts show multiple scenarios for comparison
-
-## Technology Stack
-
-- **Framework**: Next.js 15 with App Router
-- **Language**: TypeScript
-- **Styling**: Tailwind CSS
-- **UI Components**: Radix UI primitives with custom styling
-- **Charts**: Recharts
-- **Build Tool**: Turbopack (Next.js)
+Static files are exported to the `out/` directory.
 
 ## Project Structure
 
 ```
+big-beautiful-bill/     # Bill text organized by title
+├── title-i-agriculture.md
+├── title-ii-armed-services.md
+├── ...
+└── title-vii-finance/  # Largest section, split into subtitles
+    ├── subtitle-a-tax.md
+    ├── subtitle-b-health.md
+    └── ...
+
 src/
-├── app/                 # Next.js app router pages
-├── components/          # React components
-│   ├── ui/             # Reusable UI components
-│   └── salt-calculator.tsx  # Main calculator component
-├── lib/                # Utility libraries
-└── util/               # Tax calculation logic and data
+├── app/                # Next.js app router pages
+├── components/         # React components
+│   └── salt-calculator.tsx
+└── util/               # Business logic
     ├── tax-calculations.ts
     └── tax-data.ts
 ```
 
+## Technology Stack
+
+- **Framework**: Next.js 16 with App Router
+- **Language**: TypeScript
+- **Styling**: Tailwind CSS 4
+- **UI Components**: Radix UI primitives
+- **Charts**: Recharts
+
 ## Disclaimer
 
-This calculator provides estimates for educational purposes only. Tax situations can be complex, and actual tax liability may vary based on many factors not captured in this tool. For official tax advice, consult a qualified tax professional.
+These tools provide estimates for educational purposes only. Tax situations and policy impacts can be complex. For official advice, consult qualified professionals.
 
 ## Contributing
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+Contributions welcome! Ideas for new calculators or visualizations covering other bill sections are especially appreciated.
 
 ## License
 
-This project is open source and available under the [MIT License](LICENSE).
+MIT License
